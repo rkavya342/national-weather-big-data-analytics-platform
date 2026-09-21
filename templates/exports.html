@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Data Export & Intelligence Reports - Weather Intelligence Platform{% endblock %}
+
+{% block content %}
+    <!-- Main Container -->
+    <div class="container-fluid px-4 py-4">
+
+        <!-- Page Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="fw-bold mb-1 text-dark">
+                    <i class="bi bi-file-earmark-zip-fill text-primary me-2"></i>DATA EXPORT & INTELLIGENCE REPORTS
+                </h3>
+                <p class="text-muted mb-0 small">Export multi-source weather observations, citizen reports, severe alerts, and generate automated executive intelligence summaries.</p>
+            </div>
+        </div>
+
+        <!-- Real-Time Export Summary Preview Bar -->
+        <div class="card shadow-sm border-0 border-top border-primary border-3 mb-4">
+            <div class="card-body py-3">
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Current Export Dataset Preview</h6>
+                <div class="row text-center g-3">
+                    <div class="col-6 col-md">
+                        <span class="text-muted small d-block">Matching Reports</span>
+                        <h4 id="preview-total-reports" class="fw-bold text-primary mb-0">--</h4>
+                    </div>
+                    <div class="col-6 col-md">
+                        <span class="text-muted small d-block">Date Range</span>
+                        <h6 id="preview-date-range" class="fw-bold text-dark mb-0 pt-1">--</h6>
+                    </div>
+                    <div class="col-6 col-md">
+                        <span class="text-muted small d-block">Event Types</span>
+                        <h4 id="preview-events-count" class="fw-bold text-warning mb-0">--</h4>
+                    </div>
+                    <div class="col-6 col-md">
+                        <span class="text-muted small d-block">States Covered</span>
+                        <h4 id="preview-states-count" class="fw-bold text-info mb-0">--</h4>
+                    </div>
+                    <div class="col-6 col-md">
+                        <span class="text-muted small d-block">Average Trust</span>
+                        <h4 id="preview-avg-trust" class="fw-bold text-success mb-0">--</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Panel Card -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-funnel-fill text-primary me-2"></i>Filter Export Dataset</h6>
+            </div>
+            <div class="card-body py-2">
+                <form id="export-filter-form" class="row g-2 align-items-center">
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">Date From</label>
+                        <input type="date" id="filter-start-date" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">Date To</label>
+                        <input type="date" id="filter-end-date" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">Event Type</label>
+                        <select id="filter-event-type" class="form-select form-select-sm">
+                            <option value="all">All Events</option>
+                            <option value="Heavy Rainfall">Heavy Rainfall</option>
+                            <option value="Flood Risk">Flood Risk</option>
+                            <option value="Heatwave">Heatwave</option>
+                            <option value="Thunderstorm">Thunderstorm</option>
+                            <option value="Strong Wind">Strong Wind</option>
+                            <option value="Dust Storm">Dust Storm</option>
+                            <option value="Fog / Low Visibility">Fog / Low Visibility</option>
+                            <option value="Normal Weather">Normal Weather</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">State</label>
+                        <select id="filter-state" class="form-select form-select-sm">
+                            <option value="all">All States</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="West Bengal">West Bengal</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">City Search</label>
+                        <input type="text" id="filter-city" class="form-control form-control-sm" placeholder="Enter city name...">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">Source</label>
+                        <select id="filter-source" class="form-select form-select-sm">
+                            <option value="all">All Sources</option>
+                            <option value="Citizen Report">Citizen Report</option>
+                            <option value="Social Media Public Post">Social Media Public Post</option>
+                            <option value="Government Channel">Government Channel</option>
+                            <option value="IMD Official Bulletin">IMD Official Bulletin</option>
+                            <option value="OpenWeatherMap API">OpenWeatherMap API</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">Verification Status</label>
+                        <select id="filter-verification-status" class="form-select form-select-sm">
+                            <option value="all">All Statuses</option>
+                            <option value="Likely Consistent">Verified (Likely Consistent)</option>
+                            <option value="Needs Verification">Needs Verification</option>
+                            <option value="Suspicious">Suspicious</option>
+                            <option value="Unverified">Unverified</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label small fw-bold mb-1">Trust Level</label>
+                        <select id="filter-trust-level" class="form-select form-select-sm">
+                            <option value="all">All Trust Levels</option>
+                            <option value="high">High Trust (80-100%)</option>
+                            <option value="medium">Medium Trust (50-79%)</option>
+                            <option value="low">Low Trust (&lt;50%)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" id="btn-clear-filters" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-circle me-1"></i> Clear Filters
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold">
+                            <i class="bi bi-funnel-fill me-1"></i> Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Export Cards Grid -->
+        <div class="row g-4 mb-4">
+            <!-- Card 1: Weather Reports Export -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="card shadow-sm border-0 h-100 border-start border-primary border-4">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-primary-subtle text-primary p-2 rounded-circle me-2">
+                                <i class="bi bi-file-earmark-spreadsheet fs-5"></i>
+                            </div>
+                            <h6 class="fw-bold mb-0 text-dark">Weather Reports</h6>
+                        </div>
+                        <p class="text-muted small mb-3">Download filtered weather reports including AI classification, verification scores, duplicate status, and trust scores.</p>
+                        <div class="d-grid gap-2">
+                            <button id="btn-export-reports-csv" class="btn btn-outline-primary btn-sm fw-bold">
+                                <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                            </button>
+                            <button id="btn-export-reports-json" class="btn btn-outline-dark btn-sm fw-bold">
+                                <i class="bi bi-filetype-json me-1"></i> Export JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Weather Observations Export -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="card shadow-sm border-0 h-100 border-start border-info border-4">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-info-subtle text-info p-2 rounded-circle me-2">
+                                <i class="bi bi-cloud-sun fs-5"></i>
+                            </div>
+                            <h6 class="fw-bold mb-0 text-dark">Weather Observations</h6>
+                        </div>
+                        <p class="text-muted small mb-3">Download raw OpenWeather API observation records including temp, humidity, wind, and AI event tags.</p>
+                        <div class="d-grid gap-2 mt-auto">
+                            <button id="btn-export-weather-csv" class="btn btn-info btn-sm text-white fw-bold">
+                                <i class="bi bi-filetype-csv me-1"></i> Export Observations CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Weather Alerts Export -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="card shadow-sm border-0 h-100 border-start border-danger border-4">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-danger-subtle text-danger p-2 rounded-circle me-2">
+                                <i class="bi bi-shield-exclamation fs-5"></i>
+                            </div>
+                            <h6 class="fw-bold mb-0 text-dark">Weather Alerts</h6>
+                        </div>
+                        <p class="text-muted small mb-3">Download national weather alert logs including severity levels, location coordinates, detection & resolution timestamps.</p>
+                        <div class="d-grid gap-2 mt-auto">
+                            <button id="btn-export-alerts-csv" class="btn btn-danger btn-sm fw-bold">
+                                <i class="bi bi-filetype-csv me-1"></i> Export Alerts CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: Admin Audit Export (RBAC Protected) -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="card shadow-sm border-0 h-100 border-start border-warning border-4">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-warning-subtle text-dark p-2 rounded-circle me-2">
+                                <i class="bi bi-shield-lock fs-5"></i>
+                            </div>
+                            <h6 class="fw-bold mb-0 text-dark">Admin Audit History</h6>
+                        </div>
+                        <p class="text-muted small mb-3">Download complete human-in-the-loop verification audit action history. <span class="badge bg-warning text-dark">Admin Only</span></p>
+                        <div class="d-grid gap-2 mt-auto">
+                            {% if session.get('role') in ['admin', 'analyst'] %}
+                            <button id="btn-export-audit-csv" class="btn btn-outline-warning text-dark btn-sm fw-bold">
+                                <i class="bi bi-journal-check me-1"></i> Export Audit Logs CSV
+                            </button>
+                            {% else %}
+                            <button class="btn btn-outline-secondary btn-sm" disabled title="Admin Access Required">
+                                <i class="bi bi-lock-fill me-1"></i> Restricted (Admin Only)
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Intelligence Report Preview Section -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-journal-richtext text-primary me-2"></i>Weather Intelligence Summary Report
+                </h5>
+                <div class="d-flex gap-2">
+                    <button id="btn-generate-summary" class="btn btn-primary btn-sm fw-bold">
+                        <i class="bi bi-cpu me-1"></i> Generate Intelligence Summary
+                    </button>
+                    <button id="btn-download-summary" class="btn btn-success btn-sm fw-bold">
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i> Download Summary
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div id="intelligence-summary-preview" class="border p-4 rounded bg-white shadow-sm">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading Intelligence Report...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        window.CURRENT_USER_ROLE = "{{ session.get('role', 'user') }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/exports_center.js') }}"></script>
+{% endblock %}

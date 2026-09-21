@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}National Weather Intelligence Platform{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-light">
+
+    <!-- Primary Navigation Header Shell -->
+    <nav class="navbar navbar-expand-xl navbar-dark navbar-custom sticky-top shadow-sm py-2">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center fw-bold" href="{{ url_for('dashboard') }}">
+                <i class="bi bi-cloud-lightning-rain-fill text-warning me-2 fs-4"></i>
+                <span>NATIONAL WEATHER INTELLIGENCE PLATFORM</span>
+            </a>
+
+            <div class="d-flex align-items-center gap-2">
+                <span id="live-connection-badge" class="badge bg-secondary rounded-pill px-3 py-2">
+                    <i class="bi bi-circle-fill me-1 text-danger" style="font-size: 0.65rem;"></i> Live Connection: Disconnected
+                </span>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
+            <div class="collapse navbar-collapse mt-2 mt-xl-0" id="navbarMain">
+                {% set ep = request.endpoint %}
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0 ms-xl-3 gap-1 flex-wrap align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link {% if ep == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if ep == 'view_reports' %}active{% endif %}" href="{{ url_for('view_reports') }}">
+                            <i class="bi bi-file-earmark-text me-1"></i> Weather Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if ep == 'live_map_page' %}active{% endif %}" href="{{ url_for('live_map_page') }}">
+                            <i class="bi bi-map-fill me-1"></i> Live Event Map
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if ep == 'api_weather' %}active{% endif %}" href="{{ url_for('api_weather') }}">
+                            <i class="bi bi-cloud-arrow-down me-1"></i> Data Ingestion
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if ep == 'submit_report' %}active{% endif %}" href="{{ url_for('submit_report') }}">
+                            <i class="bi bi-pencil-square me-1"></i> Citizen Report
+                        </a>
+                    </li>
+
+                    {% if session.get('role') in ['admin', 'analyst'] %}
+                    <li class="nav-item">
+                        <a class="nav-link text-warning {% if ep in ['admin_dashboard', 'admin_history_page'] %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Admin Panel
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="nav-item">
+                        <a class="nav-link {% if ep == 'alerts_page' %}active{% endif %}" href="{{ url_for('alerts_page') }}">
+                            <i class="bi bi-bell-fill me-1 text-warning"></i> Weather Alerts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if ep == 'analyst_page' %}active{% endif %}" href="{{ url_for('analyst_page') }}">
+                            <i class="bi bi-bar-chart-line me-1 text-info"></i> Analyst Workbench
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if ep == 'exports_page' %}active{% endif %}" href="{{ url_for('exports_page') }}">
+                            <i class="bi bi-download me-1 text-success"></i> Data Exports
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Right Navbar Actions -->
+                <div class="d-flex align-items-center gap-2 mt-2 mt-xl-0 flex-wrap">
+                    <a href="{{ url_for('submit_report') }}" class="btn btn-warning btn-sm fw-bold nav-btn-custom text-dark">
+                        <i class="bi bi-plus-lg me-1"></i> Submit Report
+                    </a>
+                    {% if session.get('username') %}
+                    <span class="badge bg-secondary-subtle text-light border px-2 py-2">
+                        <i class="bi bi-person-fill me-1"></i>{{ session.get('username') }} ({{ session.get('role', 'user')|upper }})
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm nav-btn-custom" title="Logout">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-sm nav-btn-custom">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Admin Login
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container Shell -->
+    <main class="container-fluid px-4 py-4">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+
+    </main>
+
+    <!-- Shared Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/realtime_dashboard.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

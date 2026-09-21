@@ -1,0 +1,1144 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - National Weather Intelligence Platform{% endblock %}
+
+{% block content %}
+
+
+
+
+        <!-- Multi-Source Weather Ingestion Overview Section -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                <i class="bi bi-diagram-3-fill text-primary me-2"></i> Multi-Source Weather Intelligence Ingestion
+            </h5>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('import_sample_reports_route') }}"
+                    class="btn btn-success btn-sm fw-semibold shadow-sm">
+                    <i class="bi bi-download me-1"></i> Load Demo Multi-Source Data
+                </a>
+
+            </div>
+        </div>
+
+        <!-- 6 Multi-Source Stat Cards Grid -->
+        <div class="row g-3 mb-4">
+            <!-- Total Reports -->
+            <div class="col-6 col-sm-4 col-md-2">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Total Reports</span>
+                    <h3 id="ms-total-reports" class="fw-bold mb-0 text-dark">{{ multi_source_summary['total_reports'] if
+                        multi_source_summary else 0 }}</h3>
+                </div>
+            </div>
+            <!-- Official API -->
+            <div class="col-6 col-sm-4 col-md-2">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <span class="text-info fs-7 fw-semibold d-block text-truncate">Official API</span>
+                    <h3 id="ms-official-api" class="fw-bold mb-0 text-info">{{
+                        multi_source_summary['official_api_reports'] if multi_source_summary else 0 }}</h3>
+                </div>
+            </div>
+            <!-- Citizen Reports -->
+            <div class="col-6 col-sm-4 col-md-2">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <span class="text-primary fs-7 fw-semibold d-block text-truncate">Citizen Reports</span>
+                    <h3 id="ms-citizen-reports" class="fw-bold mb-0 text-primary">{{
+                        multi_source_summary['citizen_reports'] if multi_source_summary else 0 }}</h3>
+                </div>
+            </div>
+            <!-- Social Media Reports -->
+            <div class="col-6 col-sm-4 col-md-2">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <span class="text-danger fs-7 fw-semibold d-block text-truncate">Social Media</span>
+                    <h3 id="ms-social-media" class="fw-bold mb-0 text-danger">{{
+                        multi_source_summary['social_media_reports'] if multi_source_summary else 0 }}</h3>
+                </div>
+            </div>
+            <!-- News Reports -->
+            <div class="col-6 col-sm-4 col-md-2">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <span class="text-warning-emphasis fs-7 fw-semibold d-block text-truncate">News Reports</span>
+                    <h3 id="ms-news-reports" class="fw-bold mb-0 text-warning-emphasis">{{
+                        multi_source_summary['news_reports'] if multi_source_summary else 0 }}</h3>
+                </div>
+            </div>
+            <!-- Public Dataset Reports -->
+            <div class="col-6 col-sm-4 col-md-2">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <span class="text-success fs-7 fw-semibold d-block text-truncate">Public Dataset</span>
+                    <h3 id="ms-public-dataset" class="fw-bold mb-0 text-success">{{
+                        multi_source_summary['public_dataset_reports'] if multi_source_summary else 0 }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row with Source Distribution Chart.js & Recent Multi-Source Reports Table -->
+        <div class="row g-4 mb-4">
+            <!-- Chart.js Source Distribution Canvas Card -->
+            <div class="col-12 col-lg-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-pie-chart-fill text-primary me-2"></i> Source Proportions & Distribution
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Chart.js</span>
+                    </div>
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center p-3">
+                        <div style="width: 100%; max-height: 270px; position: relative;">
+                            <canvas id="sourceDistributionChart"></canvas>
+                        </div>
+                        <small class="text-muted text-center mt-2" style="font-size: 0.75rem;">
+                            <em>* Note: Social Media and Public Dataset reports are simulated synthetic feeds for
+                                hackathon prototype demonstration.</em>
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Multi-Source Reports Table Card -->
+            <div class="col-12 col-lg-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-journals me-2 text-info"></i> Recent Multi-Source Weather Ingestions
+                        </h6>
+                        <a href="{{ url_for('view_reports') }}"
+                            class="badge bg-info-subtle text-info text-decoration-none">View All Reports</a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if multi_source_summary and multi_source_summary.recent_reports and
+                        multi_source_summary.recent_reports|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 text-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>City</th>
+                                        <th>Event</th>
+                                        <th>Verification</th>
+                                        <th>Trust Score</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in multi_source_summary.recent_reports %}
+                                    <tr>
+                                        <td>
+                                            {% if r.source == 'Official Weather API' or r.source == 'OpenWeatherMap API'
+                                            %}
+                                            <span
+                                                class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1"><i
+                                                    class="bi bi-cloud-sun me-1"></i>Official API</span>
+                                            {% elif r.source == 'Government/Official Source' %}
+                                            <span class="badge bg-primary px-2 py-1"><i
+                                                    class="bi bi-building me-1"></i>Government</span>
+                                            {% elif r.source == 'Verified Organization' %}
+                                            <span
+                                                class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i
+                                                    class="bi bi-patch-check-fill me-1"></i>Verified Org</span>
+                                            {% elif r.source == 'News Website' %}
+                                            <span
+                                                class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1"><i
+                                                    class="bi bi-newspaper me-1"></i>News</span>
+                                            {% elif r.source == 'Social Media' %}
+                                            <span
+                                                class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1"><i
+                                                    class="bi bi-twitter-x me-1"></i>Social Media</span>
+                                            {% elif r.source == 'Public Dataset' %}
+                                            <span class="badge bg-secondary-subtle text-dark border px-2 py-1"><i
+                                                    class="bi bi-database me-1"></i>Public Data</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-secondary border px-2 py-1"><i
+                                                    class="bi bi-person me-1"></i>{{ r.source or 'Citizen' }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><span class="fw-semibold text-dark">{{ r.city }}</span></td>
+                                        <td><span class="badge bg-light text-dark border">{{ r.event_type }}</span></td>
+                                        <td>
+                                            {% set vres = r.verification_result or r.verification_status or 'Unverified'
+                                            %}
+                                            {% if vres == 'Likely Consistent' %}
+                                            <span class="badge bg-success-subtle text-success">Consistent</span>
+                                            {% elif vres == 'Suspicious' %}
+                                            <span class="badge bg-danger-subtle text-danger">Suspicious</span>
+                                            {% else %}
+                                            <span
+                                                class="badge bg-warning-subtle text-warning-emphasis">Unverified</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% set tsc = r.trust_score or 0.0 %}
+                                            {% if tsc >= 80.0 %}
+                                            <span class="fw-bold text-success">{{ "%.1f"|format(tsc) }}%</span>
+                                            {% elif tsc >= 50.0 %}
+                                            <span class="fw-bold text-warning-emphasis">{{ "%.1f"|format(tsc) }}%</span>
+                                            {% else %}
+                                            <span class="fw-bold text-danger">{{ "%.1f"|format(tsc) }}%</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small class="text-muted">{{ r.report_datetime or r.created_at }}</small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="p-4 text-center">
+                            <i class="bi bi-inbox fs-2 text-muted d-block mb-2"></i>
+                            <p class="text-muted small mb-0">No multi-source reports available yet. Click "Load Demo
+                                Multi-Source Data" to import.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Citizen Reports Verification Summary Row -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                <i class="bi bi-shield-check text-primary me-2"></i> Citizen Reports Verification & Duplicate Overview
+            </h5>
+            <a href="{{ url_for('view_reports') }}"
+                class="badge bg-primary-subtle text-primary text-decoration-none px-3 py-2 fw-semibold">
+                Manage Reports <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Total Citizen Reports -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card stat-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase text-muted fw-semibold fs-7 d-block mb-1">Total Citizen
+                                    Reports</span>
+                                <h3 id="summary-total-citizen" class="fw-bold mb-0 text-dark">{{
+                                    verification_summary['Total Citizen Reports'] if verification_summary else 0 }}</h3>
+                            </div>
+                            <div class="icon-shape bg-primary-subtle text-primary rounded-3 p-3">
+                                <i class="bi bi-journal-text fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex gap-2">
+                            <span class="badge bg-light text-secondary border">Citizen Ground Observations</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unique Reports -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card stat-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase text-info-emphasis fw-semibold fs-7 d-block mb-1">Unique
+                                    Reports</span>
+                                <h3 class="fw-bold mb-0 text-info-emphasis">{{ duplicate_summary['Unique Reports'] if
+                                    duplicate_summary else 0 }}</h3>
+                            </div>
+                            <div class="icon-shape bg-info-subtle text-info rounded-3 p-3">
+                                <i class="bi bi-file-earmark-check fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('view_reports', duplicate_filter='Unique') }}"
+                                class="badge bg-info-subtle text-info-emphasis text-decoration-none">
+                                View Unique <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Reports -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card stat-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase text-warning-emphasis fw-semibold fs-7 d-block mb-1">Related
+                                    Reports</span>
+                                <h3 class="fw-bold mb-0 text-warning-emphasis">{{ duplicate_summary['Related Reports']
+                                    if duplicate_summary else 0 }}</h3>
+                            </div>
+                            <div class="icon-shape bg-warning-subtle text-warning rounded-3 p-3">
+                                <i class="bi bi-diagram-3-fill fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('view_reports', duplicate_filter='Related Report') }}"
+                                class="badge bg-warning-subtle text-warning-emphasis text-decoration-none">
+                                View Related <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Potential Duplicates -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card stat-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase text-danger fw-semibold fs-7 d-block mb-1">Potential
+                                    Duplicates</span>
+                                <h3 class="fw-bold mb-0 text-danger">{{ duplicate_summary['Potential Duplicates'] if
+                                    duplicate_summary else 0 }}</h3>
+                            </div>
+                            <div class="icon-shape bg-danger-subtle text-danger rounded-3 p-3">
+                                <i class="bi bi-files fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('view_reports', duplicate_filter='Potential Duplicate') }}"
+                                class="badge bg-danger-subtle text-danger text-decoration-none">
+                                Flagged Duplicates <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Source Trust Overview Section -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                <i class="bi bi-award-fill text-success me-2"></i> Source Trust & Credibility Overview
+            </h5>
+            <a href="{{ url_for('view_reports') }}"
+                class="badge bg-success-subtle text-success text-decoration-none px-3 py-2 fw-semibold">
+                View Report Trust Details <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Average Trust Score -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card stat-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase text-muted fw-semibold fs-7 d-block mb-1">Average Trust
+                                    Score</span>
+                                <h3 id="trust-avg-score" class="fw-bold mb-0 text-dark">{{
+                                    "%.1f"|format(trust_summary['avg_trust']) if trust_summary and
+                                    trust_summary['avg_trust'] is not none else '0.0' }}%</h3>
+                            </div>
+                            <div class="icon-shape bg-success-subtle text-success rounded-3 p-3">
+                                <i class="bi bi-percent fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">Overall
+                                Platform Score</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- High Trust Reports -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card stat-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase text-success fw-semibold fs-7 d-block mb-1">High Trust (≥
+                                    80%)</span>
+                                <h3 id="trust-high-count" class="fw-bold mb-0 text-success">{{
+                                    trust_summary['high_trust_count'] if trust_summary else 0 }}</h3>
+                            </div>
+                            <div class="icon-shape bg-success-subtle text-success rounded-3 p-3">
+                                <i class="bi bi-shield-fill-check fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('view_reports', trust_filter='High Trust') }}"
+                                class="badge bg-success-subtle text-success text-decoration-none">
+                                View High Trust <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medium Trust Reports -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card stat-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase text-warning-emphasis fw-semibold fs-7 d-block mb-1">Medium
+                                    Trust (50–79%)</span>
+                                <h3 id="trust-medium-count" class="fw-bold mb-0 text-warning-emphasis">{{
+                                    trust_summary['medium_trust_count'] if trust_summary else 0 }}</h3>
+                            </div>
+                            <div class="icon-shape bg-warning-subtle text-warning rounded-3 p-3">
+                                <i class="bi bi-shield-fill-exclamation fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('view_reports', trust_filter='Medium Trust') }}"
+                                class="badge bg-warning-subtle text-warning-emphasis text-decoration-none">
+                                View Medium Trust <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Trust Reports -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card stat-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase text-danger fw-semibold fs-7 d-block mb-1">Low Trust (&lt;
+                                    50%)</span>
+                                <h3 id="trust-low-count" class="fw-bold mb-0 text-danger">{{
+                                    trust_summary['low_trust_count'] if trust_summary else 0 }}</h3>
+                            </div>
+                            <div class="icon-shape bg-danger-subtle text-danger rounded-3 p-3">
+                                <i class="bi bi-shield-fill-x fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('view_reports', trust_filter='Low Trust') }}"
+                                class="badge bg-danger-subtle text-danger text-decoration-none">
+                                View Low Trust <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Source Breakdown Table Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                    <i class="bi bi-bar-chart-steps text-success me-2"></i> Source Category Trust Summary
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if trust_summary and trust_summary.source_rows and trust_summary.source_rows|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Source Category</th>
+                                <th>Total Reports</th>
+                                <th>Average Trust Score</th>
+                                <th>Highest Score</th>
+                                <th>Lowest Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in trust_summary.source_rows %}
+                            <tr>
+                                <td><span class="fw-semibold text-dark">{{ row.source_name }}</span></td>
+                                <td><span class="badge bg-secondary-subtle text-dark px-2 py-1">{{ row.count }}</span>
+                                </td>
+                                <td>
+                                    {% set score = row.avg_score or 0.0 %}
+                                    {% if score >= 80.0 %}
+                                    <span
+                                        class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i
+                                            class="bi bi-shield-check me-1"></i>{{ "%.1f"|format(score) }}%</span>
+                                    {% elif score >= 50.0 %}
+                                    <span
+                                        class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1"><i
+                                            class="bi bi-shield-exclamation me-1"></i>{{ "%.1f"|format(score) }}%</span>
+                                    {% else %}
+                                    <span
+                                        class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1"><i
+                                            class="bi bi-shield-x me-1"></i>{{ "%.1f"|format(score) }}%</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="fw-semibold text-success">{{ "%.1f"|format(row.max_score or 0.0)
+                                        }}%</span></td>
+                                <td><span class="fw-semibold text-danger">{{ "%.1f"|format(row.min_score or 0.0)
+                                        }}%</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <i class="bi bi-shield-slash fs-2 text-muted d-block mb-2"></i>
+                    <p class="text-muted small mb-0">No source trust scoring data available yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- AI Weather Events Summary Breakdown Row -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                <i class="bi bi-cpu-fill text-primary me-2"></i> AI Weather Events Classification Summary
+            </h5>
+            <span class="badge bg-primary-subtle text-primary fw-semibold">
+                Total Observations: {{ ai_summary['Total Observations'] if ai_summary else 0 }}
+            </span>
+        </div>
+
+        <div class="row g-2 mb-4">
+            <!-- Normal Weather -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl-1-5">
+                <div class="card border-0 shadow-sm text-center p-2">
+                    <span class="text-muted fs-7 fw-semibold d-block text-truncate">Normal Weather</span>
+                    <h4 class="fw-bold mb-0 text-dark">{{ ai_summary['Normal Weather'] if ai_summary else 0 }}</h4>
+                </div>
+            </div>
+            <!-- Heavy Rainfall -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl-1-5">
+                <div class="card border-0 shadow-sm text-center p-2">
+                    <span class="text-primary fs-7 fw-semibold d-block text-truncate">Heavy Rainfall</span>
+                    <h4 class="fw-bold mb-0 text-primary">{{ ai_summary['Heavy Rainfall'] if ai_summary else 0 }}</h4>
+                </div>
+            </div>
+            <!-- Thunderstorm -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl-1-5">
+                <div class="card border-0 shadow-sm text-center p-2">
+                    <span class="text-warning-emphasis fs-7 fw-semibold d-block text-truncate">Thunderstorm</span>
+                    <h4 class="fw-bold mb-0 text-warning-emphasis">{{ ai_summary['Thunderstorm'] if ai_summary else 0 }}
+                    </h4>
+                </div>
+            </div>
+            <!-- Heatwave -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl-1-5">
+                <div class="card border-0 shadow-sm text-center p-2">
+                    <span class="text-danger fs-7 fw-semibold d-block text-truncate">Heatwave</span>
+                    <h4 class="fw-bold mb-0 text-danger">{{ ai_summary['Heatwave'] if ai_summary else 0 }}</h4>
+                </div>
+            </div>
+            <!-- Fog -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl-1-5">
+                <div class="card border-0 shadow-sm text-center p-2">
+                    <span class="text-secondary fs-7 fw-semibold d-block text-truncate">Fog</span>
+                    <h4 class="fw-bold mb-0 text-secondary">{{ ai_summary['Fog'] if ai_summary else 0 }}</h4>
+                </div>
+            </div>
+            <!-- Strong Wind -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl-1-5">
+                <div class="card border-0 shadow-sm text-center p-2">
+                    <span class="text-dark fs-7 fw-semibold d-block text-truncate">Strong Wind</span>
+                    <h4 class="fw-bold mb-0 text-dark">{{ ai_summary['Strong Wind'] if ai_summary else 0 }}</h4>
+                </div>
+            </div>
+            <!-- Dust Storm -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl-1-5">
+                <div class="card border-0 shadow-sm text-center p-2">
+                    <span class="text-warning fs-7 fw-semibold d-block text-truncate">Dust Storm</span>
+                    <h4 class="fw-bold mb-0 text-warning">{{ ai_summary['Dust Storm'] if ai_summary else 0 }}</h4>
+                </div>
+            </div>
+            <!-- Flood Risk -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl-1-5">
+                <div class="card border-0 shadow-sm text-center p-2 border-start border-danger border-3">
+                    <span class="text-danger fw-bold fs-7 d-block text-truncate">Flood Risk</span>
+                    <h4 class="fw-bold mb-0 text-danger">{{ ai_summary['Flood Risk'] if ai_summary else 0 }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Classified Events Table Section -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div
+                class="card-header bg-white py-3 d-flex flex-wrap align-items-center justify-content-between border-bottom gap-2">
+                <h5 class="card-title mb-0 fw-bold d-flex align-items-center text-dark">
+                    <i class="bi bi-robot text-primary me-2"></i> Recent AI-Classified Weather Observations
+                </h5>
+
+                <!-- Event Type Filter Form -->
+                <form action="{{ url_for('dashboard') }}" method="GET" class="d-flex align-items-center gap-2">
+                    <label for="event_filter" class="form-label mb-0 small fw-semibold text-muted">Filter by
+                        Event:</label>
+                    <select name="event_filter" id="event_filter" class="form-select form-select-sm"
+                        onchange="this.form.submit()" style="min-width: 180px;">
+                        <option value="All" {% if selected_event_filter=='All' %}selected{% endif %}>All Event
+                            Categories</option>
+                        <option value="Normal Weather" {% if selected_event_filter=='Normal Weather' %}selected{% endif
+                            %}>Normal Weather</option>
+                        <option value="Heavy Rainfall" {% if selected_event_filter=='Heavy Rainfall' %}selected{% endif
+                            %}>Heavy Rainfall</option>
+                        <option value="Thunderstorm" {% if selected_event_filter=='Thunderstorm' %}selected{% endif %}>
+                            Thunderstorm</option>
+                        <option value="Heatwave" {% if selected_event_filter=='Heatwave' %}selected{% endif %}>Heatwave
+                        </option>
+                        <option value="Fog" {% if selected_event_filter=='Fog' %}selected{% endif %}>Fog</option>
+                        <option value="Strong Wind" {% if selected_event_filter=='Strong Wind' %}selected{% endif %}>
+                            Strong Wind</option>
+                        <option value="Dust Storm" {% if selected_event_filter=='Dust Storm' %}selected{% endif %}>Dust
+                            Storm</option>
+                        <option value="Flood Risk" {% if selected_event_filter=='Flood Risk' %}selected{% endif %}>Flood
+                            Risk</option>
+                    </select>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                {% if classified_events and classified_events|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>City</th>
+                                <th>State / Country</th>
+                                <th>Classified Event</th>
+                                <th>Temp (°C)</th>
+                                <th>Humidity</th>
+                                <th>Wind Speed</th>
+                                <th>AI Confidence</th>
+                                <th>Recorded Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in classified_events %}
+                            <tr>
+                                <td><span class="fw-semibold text-dark">{{ item.city }}</span></td>
+                                <td><small class="text-muted">{{ item.state or 'India' }}</small></td>
+                                <td>
+                                    {% if item.event_type == 'Flood Risk' %}
+                                    <span class="badge bg-danger text-white px-2 py-1"><i
+                                            class="bi bi-water me-1"></i>Flood Risk</span>
+                                    {% elif item.event_type == 'Heatwave' %}
+                                    <span class="badge bg-danger-subtle text-danger px-2 py-1"><i
+                                            class="bi bi-thermometer-high me-1"></i>Heatwave</span>
+                                    {% elif item.event_type == 'Thunderstorm' %}
+                                    <span class="badge bg-warning text-dark px-2 py-1"><i
+                                            class="bi bi-lightning-charge-fill me-1"></i>Thunderstorm</span>
+                                    {% elif item.event_type == 'Heavy Rainfall' %}
+                                    <span class="badge bg-primary px-2 py-1"><i
+                                            class="bi bi-cloud-rain-heavy-fill me-1"></i>Heavy Rainfall</span>
+                                    {% elif item.event_type == 'Strong Wind' %}
+                                    <span class="badge bg-dark px-2 py-1"><i class="bi bi-wind me-1"></i>Strong
+                                        Wind</span>
+                                    {% elif item.event_type == 'Dust Storm' %}
+                                    <span class="badge bg-warning-subtle text-dark px-2 py-1"><i
+                                            class="bi bi-sun-fill me-1"></i>Dust Storm</span>
+                                    {% elif item.event_type == 'Fog' %}
+                                    <span class="badge bg-secondary px-2 py-1"><i
+                                            class="bi bi-cloud-haze-fill me-1"></i>Fog</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-secondary border px-2 py-1">Normal Weather</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="fw-bold">{{ "%.1f"|format(item.temperature) if item.temperature is not
+                                        none else '--' }}°C</span></td>
+                                <td>{{ item.humidity }}%</td>
+                                <td>{{ item.wind_speed }} m/s</td>
+                                <td>
+                                    <span class="fw-semibold text-primary">{{ "%.1f"|format(item.event_confidence) if
+                                        item.event_confidence is not none else '95.0' }}%</span>
+                                </td>
+                                <td><small class="text-muted">{{ item.recorded_at or item.created_at }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-5 text-center">
+                    <i class="bi bi-cpu fs-1 text-muted d-block mb-3"></i>
+                    <h6 class="text-secondary fw-semibold">No classified events found for filter: "{{
+                        selected_event_filter }}".</h6>
+                    <p class="text-muted small mb-0">Run multi-city weather ingestion from the <a
+                            href="{{ url_for('api_weather') }}">Live Weather Ingestion</a> page to populate events.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Main Dashboard Content Grid (Map Container & Recent Citizen Reports) -->
+        <div class="row g-4">
+
+            <!-- India Weather Intelligence Interactive Leaflet Map Card -->
+            <div class="col-12 col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                            <h5 class="card-title mb-0 fw-bold d-flex align-items-center text-dark">
+                                <i class="bi bi-geo-alt-fill text-danger me-2"></i> India Weather Intelligence Map
+                            </h5>
+                            <!-- Map Summary Counters -->
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                    Mapped: <strong id="mapped-count-badge">0</strong>
+                                </span>
+                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                                    Events: <strong id="mapped-events-badge">0</strong>
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                    States: <strong id="mapped-states-badge">0</strong>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Map Interactive Filters Bar -->
+                        <div class="d-flex flex-wrap align-items-center gap-2 pt-2 border-top">
+                            <!-- Event Filter -->
+                            <select id="map-event-filter" class="form-select form-select-sm" style="max-width: 150px;">
+                                <option value="All">All Events</option>
+                                <option value="Heavy Rainfall">Heavy Rainfall</option>
+                                <option value="Thunderstorm">Thunderstorm</option>
+                                <option value="Flood Risk">Flood Risk</option>
+                                <option value="Heatwave">Heatwave</option>
+                                <option value="Fog">Fog</option>
+                                <option value="Dust Storm">Dust Storm</option>
+                                <option value="Strong Wind">Strong Wind</option>
+                                <option value="Normal Weather">Normal Weather</option>
+                            </select>
+
+                            <!-- State Filter -->
+                            <select id="map-state-filter" class="form-select form-select-sm" style="max-width: 140px;">
+                                <option value="All">All States</option>
+                            </select>
+
+                            <!-- Source Filter -->
+                            <select id="map-source-filter" class="form-select form-select-sm" style="max-width: 150px;">
+                                <option value="All">All Sources</option>
+                                <option value="Official Weather API">Official API</option>
+                                <option value="Government/Official Source">Government</option>
+                                <option value="Verified Organization">Verified Org</option>
+                                <option value="News Website">News Website</option>
+                                <option value="Citizen Report">Citizen Report</option>
+                                <option value="Social Media">Social Media</option>
+                                <option value="Public Dataset">Public Dataset</option>
+                                <option value="Unknown Source">Unknown Source</option>
+                            </select>
+
+                            <!-- Verification Filter -->
+                            <select id="map-verification-filter" class="form-select form-select-sm"
+                                style="max-width: 140px;">
+                                <option value="All">All Verifications</option>
+                                <option value="Likely Consistent">Consistent</option>
+                                <option value="Needs Verification">Needs Verification</option>
+                                <option value="Suspicious">Suspicious</option>
+                            </select>
+
+                            <!-- Trust Level Filter -->
+                            <select id="map-trust-filter" class="form-select form-select-sm" style="max-width: 130px;">
+                                <option value="All">All Trust</option>
+                                <option value="High Trust">High Trust (80+)</option>
+                                <option value="Medium Trust">Medium Trust (50-79)</option>
+                                <option value="Low Trust">Low Trust (&lt;50)</option>
+                            </select>
+
+                            <!-- Reset Button -->
+                            <button id="reset-map-filters-btn" class="btn btn-outline-secondary btn-sm ms-auto">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0 position-relative">
+                        <!-- Leaflet Map Container -->
+                        <div id="india-weather-map" style="height: 480px; width: 100%; z-index: 1;"></div>
+
+                        <!-- Map Event Indicators Legend Bar -->
+                        <div
+                            class="bg-light border-top p-2 d-flex flex-wrap align-items-center justify-content-center gap-3 fs-7">
+                            <span class="fw-bold text-dark me-1"><i class="bi bi-info-circle me-1"></i>Legend:</span>
+                            <span><span class="d-inline-block rounded-circle me-1"
+                                    style="width:10px; height:10px; background-color:#dc3545;"></span>Flood Risk</span>
+                            <span><span class="d-inline-block rounded-circle me-1"
+                                    style="width:10px; height:10px; background-color:#0d6efd;"></span>Heavy Rain</span>
+                            <span><span class="d-inline-block rounded-circle me-1"
+                                    style="width:10px; height:10px; background-color:#ffc107;"></span>Thunderstorm</span>
+                            <span><span class="d-inline-block rounded-circle me-1"
+                                    style="width:10px; height:10px; background-color:#fd7e14;"></span>Heatwave</span>
+                            <span><span class="d-inline-block rounded-circle me-1"
+                                    style="width:10px; height:10px; background-color:#6c757d;"></span>Fog</span>
+                            <span><span class="d-inline-block rounded-circle me-1"
+                                    style="width:10px; height:10px; background-color:#856404;"></span>Dust Storm</span>
+                            <span><span class="d-inline-block rounded-circle me-1"
+                                    style="width:10px; height:10px; background-color:#212529;"></span>Strong Wind</span>
+                            <span><span class="d-inline-block rounded-circle me-1"
+                                    style="width:10px; height:10px; background-color:#198754;"></span>Normal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Citizen Reports Summary Section -->
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 d-flex align-items-center justify-content-between border-bottom">
+                        <h5 class="card-title mb-0 fw-bold d-flex align-items-center">
+                            <i class="bi bi-clock-history text-primary me-2"></i> Citizen Reports Status
+                        </h5>
+                        <a href="{{ url_for('view_reports') }}"
+                            class="badge bg-primary-subtle text-primary text-decoration-none">View All</a>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="p-3 bg-light rounded-3 mb-3 text-center">
+                            <span class="text-uppercase text-muted fs-7 fw-semibold d-block mb-1">Citizen Ground
+                                Observations</span>
+                            <a href="{{ url_for('view_reports') }}" class="btn btn-outline-primary btn-sm fw-semibold">
+                                <i class="bi bi-table me-1"></i> Open Reports Table
+                            </a>
+                        </div>
+                        <div class="text-center pt-2">
+                            <a href="{{ url_for('submit_report') }}" class="btn btn-warning w-100 fw-bold py-2">
+                                <i class="bi bi-plus-lg me-1"></i> Submit Citizen Weather Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ADVANCED WEATHER ANALYTICS & CHARTS SECTION -->
+        <!-- ========================================== -->
+        <hr class="my-5 border-secondary opacity-25">
+
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
+            <div>
+                <h4 class="fw-bold text-dark mb-1 d-flex align-items-center">
+                    <i class="bi bi-bar-chart-line-fill text-primary me-2"></i> Advanced Weather Analytics & Big Data
+                    Insights
+                </h4>
+                <p class="text-muted small mb-0">Aggregate intelligence powered by real PostgreSQL weather observations
+                    and verification datasets</p>
+            </div>
+            <span class="badge bg-primary-subtle text-primary px-3 py-2 fw-semibold fs-7 mt-2 mt-md-0">
+                <i class="bi bi-cpu me-1"></i> PostgreSQL Aggregations
+            </span>
+        </div>
+
+        <!-- Analytics Filters Bar Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-3 bg-light rounded-3">
+                <form id="analytics-filter-form" class="row g-2 align-items-end">
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="analytics-date-from" class="form-label fs-7 fw-bold text-secondary mb-1">Date
+                            From</label>
+                        <input type="date" id="analytics-date-from" class="form-select form-select-sm">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="analytics-date-to" class="form-label fs-7 fw-bold text-secondary mb-1">Date
+                            To</label>
+                        <input type="date" id="analytics-date-to" class="form-select form-select-sm">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="analytics-event-type" class="form-label fs-7 fw-bold text-secondary mb-1">Event
+                            Type</label>
+                        <select id="analytics-event-type" class="form-select form-select-sm">
+                            <option value="All">All Events</option>
+                            <option value="Heavy Rain">Heavy Rain</option>
+                            <option value="Flood Risk">Flood Risk</option>
+                            <option value="Thunderstorm">Thunderstorm</option>
+                            <option value="Heatwave">Heatwave</option>
+                            <option value="Fog">Fog</option>
+                            <option value="Dust Storm">Dust Storm</option>
+                            <option value="High Wind">High Wind</option>
+                            <option value="Extreme Cold">Extreme Cold</option>
+                            <option value="Hailstorm">Hailstorm</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="analytics-state" class="form-label fs-7 fw-bold text-secondary mb-1">State</label>
+                        <select id="analytics-state" class="form-select form-select-sm">
+                            <option value="All">All States</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="West Bengal">West Bengal</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Odisha">Odisha</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                            <option value="Bihar">Bihar</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="analytics-source" class="form-label fs-7 fw-bold text-secondary mb-1">Source</label>
+                        <select id="analytics-source" class="form-select form-select-sm">
+                            <option value="All">All Sources</option>
+                            <option value="Official Weather API">Official API</option>
+                            <option value="Government/Official Source">Government</option>
+                            <option value="Verified Organization">Verified Org</option>
+                            <option value="News Website">News Website</option>
+                            <option value="Citizen Report">Citizen Report</option>
+                            <option value="Social Media">Social Media</option>
+                            <option value="Public Dataset">Public Dataset</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2 d-flex gap-2">
+                        <button type="button" id="apply-analytics-filters"
+                            class="btn btn-primary btn-sm w-100 fw-semibold">
+                            <i class="bi bi-filter me-1"></i> Apply
+                        </button>
+                        <button type="button" id="reset-analytics-filters"
+                            class="btn btn-outline-secondary btn-sm fw-semibold">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 7 Summary Cards Grid -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-primary border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Total Reports</span>
+                    <h3 id="adv-total-reports" class="fw-bold mb-0 text-primary">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-info border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Observations</span>
+                    <h3 id="adv-total-obs" class="fw-bold mb-0 text-info">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-success border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Likely
+                        Consistent</span>
+                    <h3 id="adv-verified-reports" class="fw-bold mb-0 text-success">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-warning border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Needs
+                        Verification</span>
+                    <h3 id="adv-needs-verification" class="fw-bold mb-0 text-warning">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-danger border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Suspicious</span>
+                    <h3 id="adv-suspicious-reports" class="fw-bold mb-0 text-danger">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-secondary border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Active States</span>
+                    <h3 id="adv-total-states" class="fw-bold mb-0 text-dark">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-dark border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Avg Trust
+                        Score</span>
+                    <h3 id="adv-avg-trust" class="fw-bold mb-0 text-dark">0.0 / 100</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8 Chart Canvases Grid -->
+        <div class="row g-4 mb-4">
+            <!-- 1. Events by Type -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-cloud-lightning-rain text-primary me-2"></i> Weather Events by Type
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Bar Chart</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="advEventsByTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Events by State -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-geo-alt-fill text-danger me-2"></i> Weather Events by State
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Bar Chart</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="advEventsByStateChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Reports Over Time -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-graph-up text-success me-2"></i> Report Volume Over Time
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Line Chart</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="advReportsOverTimeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Reports by Source -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-pie-chart-fill text-info me-2"></i> Reports by Data Source
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Doughnut</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="advReportsBySourceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Verification Status -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-shield-check text-warning me-2"></i> Verification Status Distribution
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Pie Chart</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="advVerificationStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Source Trust Score Distribution -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-award-fill text-purple me-2"></i> Trust Score Tier Distribution
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Bar Chart</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="advTrustDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Top 10 Affected Cities -->
+            <div class="col-12 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-building text-teal me-2"></i> Top 10 Affected Cities
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Horizontal Bar</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="advTopCitiesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Top Sources by Average Trust Score -->
+            <div class="col-12 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-star-fill text-warning me-2"></i> Data Sources by Avg Trust Score
+                        </h6>
+                        <span class="badge bg-light text-secondary border">Horizontal Bar</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="advTopSourcesTrustChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <!-- Custom Dashboard Map JS -->
+    <script src="{{ url_for('static', filename='js/dashboard_map.js') }}"></script>
+    <!-- Advanced Analytics JS -->
+    <script src="{{ url_for('static', filename='js/advanced_analytics.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('sourceDistributionChart');
+            if (ctx) {
+                const chartLabels = {{ (multi_source_summary.chart_labels if multi_source_summary else[]) | tojson }};
+                const chartData = {{ (multi_source_summary.chart_counts if multi_source_summary else[]) | tojson }};
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            data: chartData,
+                            backgroundColor: [
+                                '#0dcaf0', // Official API
+                                '#0d6efd', // Govt/Official
+                                '#198754', // Verified Org
+                                '#ffc107', // News Website
+                                '#6c757d', // Citizen Report
+                                '#dc3545', // Social Media
+                                '#20c997', // Public Dataset
+                                '#adb5bd'  // Unknown
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    boxWidth: 12,
+                                    font: { size: 11 }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

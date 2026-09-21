@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Weather Intelligence Analyst Center - National Weather Intelligence Platform{% endblock %}
+
+{% block content %}
+
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4 gap-2">
+            <div>
+                <h1 class="h3 fw-bold text-dark mb-1 d-flex align-items-center">
+                    <i class="bi bi-graph-up-arrow text-info me-2"></i> Weather Intelligence Analyst Workbench
+                </h1>
+                <p class="text-muted small mb-0">National weather event trends, state breakdown, source trust analytics, verification metrics, and executive summaries.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('api_download_intelligence_summary') }}" class="btn btn-primary btn-sm fw-bold shadow-sm">
+                    <i class="bi bi-file-earmark-text-fill me-1"></i> Download Intelligence Summary
+                </a>
+            </div>
+        </div>
+
+        <!-- Metric Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3 border-start border-primary border-4 h-100">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block">Total Observations</span>
+                    <h3 id="analyst-total-obs" class="fw-bold mb-0 text-primary">--</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3 border-start border-success border-4 h-100">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block">Verified Reports</span>
+                    <h3 id="analyst-verified-cnt" class="fw-bold mb-0 text-success">--</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3 border-start border-warning border-4 h-100">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block">Active Event Types</span>
+                    <h3 id="analyst-active-events" class="fw-bold mb-0 text-warning">--</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3 border-start border-info border-4 h-100">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block">Average Trust Score</span>
+                    <h3 id="analyst-avg-trust" class="fw-bold mb-0 text-info">--</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body py-3 px-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label text-muted small fw-bold mb-1">State Filter</label>
+                        <select id="analyst-state-filter" class="form-select form-select-sm">
+                            <option value="All">All States</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label text-muted small fw-bold mb-1">Event Type Filter</label>
+                        <select id="analyst-event-filter" class="form-select form-select-sm">
+                            <option value="All">All Events</option>
+                            <option value="Normal Weather">Normal Weather</option>
+                            <option value="Heavy Rainfall">Heavy Rainfall</option>
+                            <option value="Thunderstorm">Thunderstorm</option>
+                            <option value="Heatwave">Heatwave</option>
+                            <option value="Fog">Fog</option>
+                            <option value="Strong Wind">Strong Wind</option>
+                            <option value="Dust Storm">Dust Storm</option>
+                            <option value="Flood Risk">Flood Risk</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4 d-flex align-items-end gap-2">
+                        <button id="analyst-apply-filters-btn" class="btn btn-primary btn-sm fw-bold w-100">
+                            <i class="bi bi-funnel-fill me-1"></i> Apply Filters
+                        </button>
+                        <button id="analyst-reset-filters-btn" class="btn btn-outline-secondary btn-sm w-100">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid (4 Charts) -->
+        <div class="row g-4 mb-4">
+            <!-- Events by Type -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Weather Events Distribution</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="analystEventsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Status -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold"><i class="bi bi-pie-chart-fill text-success me-2"></i>Report Verification Breakdown</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="analystVerificationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Source Distribution -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold"><i class="bi bi-diagram-2-fill text-info me-2"></i>Data Source Distribution</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="analystSourceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Level Distribution -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="card-title mb-0 fw-bold"><i class="bi bi-shield-check text-warning me-2"></i>Source Trust Score Tier Distribution</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="analystTrustChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let eventsChart, verifChart, sourceChart, trustChart;
+
+        function loadAnalystData() {
+            const state = document.getElementById("analyst-state-filter").value;
+            const eventType = document.getElementById("analyst-event-filter").value;
+
+            const url = `/api/analytics?state=${encodeURIComponent(state)}&event_type=${encodeURIComponent(eventType)}`;
+
+            fetch(url)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === "success" && (res.data || res.analytics)) {
+                        const d = res.data || res.analytics;
+                        const summary = d.summary || d.overall_summary || {};
+
+                        // Summary Cards
+                        document.getElementById("analyst-total-obs").textContent = (summary.total_weather_observations || 0) + (summary.total_reports || 0);
+                        document.getElementById("analyst-verified-cnt").textContent = summary.verified_reports || 0;
+                        document.getElementById("analyst-active-events").textContent = summary.total_active_event_types || 0;
+                        document.getElementById("analyst-avg-trust").textContent = (summary.average_trust_score || 0).toFixed(1) + "/100";
+
+                        // Populate States Filter if empty
+                        const stateSel = document.getElementById("analyst-state-filter");
+                        const stateList = d.events_by_state || d.state_distribution || [];
+                        if (stateSel.options.length <= 1 && stateList.length) {
+                            const states = Array.isArray(stateList) ? stateList.map(i => i.state) : Object.keys(stateList);
+                            states.sort().forEach(st => {
+                                if (st) {
+                                    const opt = document.createElement("option");
+                                    opt.value = st;
+                                    opt.textContent = st;
+                                    stateSel.appendChild(opt);
+                                }
+                            });
+                        }
+
+                        // Render Events Chart
+                        const eventsList = d.events_by_type || [];
+                        const eventLabels = Array.isArray(eventsList) ? eventsList.map(i => i.event_type || i.label || 'Unknown') : Object.keys(eventsList);
+                        const eventData = Array.isArray(eventsList) ? eventsList.map(i => i.count || 0) : Object.values(eventsList);
+                        if (eventsChart) eventsChart.destroy();
+                        eventsChart = new Chart(document.getElementById("analystEventsChart"), {
+                            type: "bar",
+                            data: {
+                                labels: eventLabels.length ? eventLabels : ['No Data'],
+                                datasets: [{ label: "Count", data: eventData.length ? eventData : [0], backgroundColor: "#0d6efd" }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false }
+                        });
+
+                        // Render Verification Chart
+                        const verifList = d.verification_distribution || d.verification_status || [];
+                        const verifLabels = Array.isArray(verifList) ? verifList.map(i => i.status || i.verification_result || 'Unknown') : Object.keys(verifList);
+                        const verifData = Array.isArray(verifList) ? verifList.map(i => i.count || 0) : Object.values(verifList);
+                        if (verifChart) verifChart.destroy();
+                        verifChart = new Chart(document.getElementById("analystVerificationChart"), {
+                            type: "doughnut",
+                            data: {
+                                labels: verifLabels.length ? verifLabels : ['No Data'],
+                                datasets: [{ data: verifData.length ? verifData : [0], backgroundColor: ["#198754", "#0dcaf0", "#ffc107", "#dc3545", "#6c757d"] }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false }
+                        });
+
+                        // Render Source Chart
+                        const srcList = d.source_distribution || [];
+                        const srcLabels = Array.isArray(srcList) ? srcList.map(i => i.source || 'Unknown') : Object.keys(srcList);
+                        const srcData = Array.isArray(srcList) ? srcList.map(i => i.count || 0) : Object.values(srcList);
+                        if (sourceChart) sourceChart.destroy();
+                        sourceChart = new Chart(document.getElementById("analystSourceChart"), {
+                            type: "pie",
+                            data: {
+                                labels: srcLabels.length ? srcLabels : ['No Data'],
+                                datasets: [{ data: srcData.length ? srcData : [0], backgroundColor: ["#0d6efd", "#198754", "#ffc107", "#0dcaf0", "#6f42c1", "#fd7e14"] }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false }
+                        });
+
+                        // Render Trust Chart
+                        const trustList = d.trust_score_distribution || d.trust_distribution || [];
+                        const trustLabels = Array.isArray(trustList) ? trustList.map(i => i.label || 'Unknown') : Object.keys(trustList);
+                        const trustData = Array.isArray(trustList) ? trustList.map(i => i.count || 0) : Object.values(trustList);
+                        if (trustChart) trustChart.destroy();
+                        trustChart = new Chart(document.getElementById("analystTrustChart"), {
+                            type: "bar",
+                            data: {
+                                labels: trustLabels.length ? trustLabels : ['No Data'],
+                                datasets: [{ label: "Reports", data: trustData.length ? trustData : [0], backgroundColor: ["#198754", "#ffc107", "#dc3545"] }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false }
+                        });
+                    }
+                })
+                .catch(err => console.error("Error loading analyst data:", err));
+        }
+
+        document.getElementById("analyst-apply-filters-btn").addEventListener("click", loadAnalystData);
+        document.getElementById("analyst-reset-filters-btn").addEventListener("click", function () {
+            document.getElementById("analyst-state-filter").value = "All";
+            document.getElementById("analyst-event-filter").value = "All";
+            loadAnalystData();
+        });
+
+        loadAnalystData();
+    });
+    </script>
+{% endblock %}

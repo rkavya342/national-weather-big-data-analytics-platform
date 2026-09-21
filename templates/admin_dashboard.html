@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Control Center - National Weather Intelligence Platform{% endblock %}
+
+{% block content %}
+
+        <!-- Error Alert Banner -->
+        <div id="admin-error-alert" class="alert alert-danger alert-dismissible fade show shadow-sm mb-4 d-none" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span id="admin-error-text">An error occurred.</span>
+            <button type="button" class="btn-close" onclick="document.getElementById('admin-error-alert').classList.add('d-none')"></button>
+        </div>
+
+        <!-- Page Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4 gap-2">
+            <div>
+                <h1 class="h3 fw-bold text-dark mb-1 d-flex align-items-center">
+                    <i class="bi bi-shield-check text-warning me-2"></i> Admin & Weather Report Verification Control Center
+                </h1>
+                <p class="text-muted small mb-0">Human-in-the-loop AI verification quality assurance, duplicate review, and source trust scoring control center.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_history_page') }}" class="btn btn-info btn-sm fw-bold text-white shadow-sm">
+                    <i class="bi bi-clock-history me-1"></i> Audit Trail History
+                </a>
+            </div>
+        </div>
+
+        <!-- 7 Summary Cards Grid -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-primary border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Total Reports</span>
+                    <h3 id="admin-total-reports" class="fw-bold mb-0 text-primary">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-secondary border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Unverified</span>
+                    <h3 id="admin-unverified-reports" class="fw-bold mb-0 text-secondary">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-warning border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Needs Verification</span>
+                    <h3 id="admin-needs-verification" class="fw-bold mb-0 text-warning">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-danger border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Suspicious Reports</span>
+                    <h3 id="admin-suspicious-reports" class="fw-bold mb-0 text-danger">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-success border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Verified Reports</span>
+                    <h3 id="admin-verified-reports" class="fw-bold mb-0 text-success">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-info border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Duplicates</span>
+                    <h3 id="admin-duplicates" class="fw-bold mb-0 text-info">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md">
+                <div class="card border-0 shadow-sm text-center p-3 h-100 border-start border-dark border-4">
+                    <span class="text-uppercase text-muted fs-7 fw-semibold d-block text-truncate">Avg Trust Score</span>
+                    <h3 id="admin-avg-trust" class="fw-bold mb-0 text-dark">0.0 / 100</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Filters Bar Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                    <i class="bi bi-funnel-fill text-primary me-2"></i> Admin Verification & Audit Filters
+                </h6>
+                <span class="badge bg-light text-secondary border">PostgreSQL Indexed</span>
+            </div>
+            <div class="card-body p-3 bg-light rounded-bottom">
+                <form id="admin-filter-form" class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <label for="admin-search-keyword" class="form-label fs-7 fw-bold text-secondary mb-1">Search Text / City / Source</label>
+                        <input type="text" id="admin-search-keyword" class="form-control form-control-sm" placeholder="Search keyword...">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="admin-event-type" class="form-label fs-7 fw-bold text-secondary mb-1">Event Type</label>
+                        <select id="admin-event-type" class="form-select form-select-sm">
+                            <option value="All">All Events</option>
+                            <option value="Normal Weather">Normal Weather</option>
+                            <option value="Heavy Rainfall">Heavy Rainfall</option>
+                            <option value="Thunderstorm">Thunderstorm</option>
+                            <option value="Heatwave">Heatwave</option>
+                            <option value="Fog">Fog</option>
+                            <option value="Strong Wind">Strong Wind</option>
+                            <option value="Dust Storm">Dust Storm</option>
+                            <option value="Flood Risk">Flood Risk</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="admin-verification-status" class="form-label fs-7 fw-bold text-secondary mb-1">Verification Status</label>
+                        <select id="admin-verification-status" class="form-select form-select-sm">
+                            <option value="All">All Verifications</option>
+                            <option value="Needs Verification" selected>Needs Verification</option>
+                            <option value="Suspicious">Suspicious</option>
+                            <option value="Unverified">Unverified</option>
+                            <option value="Likely Consistent">Likely Consistent / Verified</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="admin-duplicate-status" class="form-label fs-7 fw-bold text-secondary mb-1">Duplicate Status</label>
+                        <select id="admin-duplicate-status" class="form-select form-select-sm">
+                            <option value="All">All Duplicates</option>
+                            <option value="Potential Duplicate">Potential Duplicate</option>
+                            <option value="Related Report">Related Report</option>
+                            <option value="Unique">Unique</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3 d-flex align-items-end gap-2">
+                        <button type="button" id="admin-apply-filters" class="btn btn-primary btn-sm w-100 fw-semibold">
+                            <i class="bi bi-filter me-1"></i> Apply
+                        </button>
+                        <button type="button" id="admin-clear-filters" class="btn btn-outline-secondary btn-sm fw-semibold text-nowrap">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Reports Requiring Attention Table Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between border-bottom">
+                <h5 class="card-title mb-0 fw-bold d-flex align-items-center">
+                    <i class="bi bi-exclamation-octagon-fill text-danger me-2"></i> Reports Requiring Attention & Audit Review
+                </h5>
+                <span class="badge bg-secondary-subtle text-dark border fs-7">
+                    Showing <span id="admin-showing-count" class="fw-bold">0</span> of <span id="admin-total-count" class="fw-bold">0</span> reports
+                </span>
+            </div>
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Attention</th>
+                                <th>ID</th>
+                                <th>Source</th>
+                                <th>Event</th>
+                                <th>Location</th>
+                                <th>Date / Time</th>
+                                <th>Verification</th>
+                                <th>Trust Score</th>
+                                <th>Duplicate Status</th>
+                                <th>AI Conf.</th>
+                                <th class="text-end pe-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-reports-table-body">
+                            <!-- Populated dynamically by admin_dashboard.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State Message Container -->
+                <div id="admin-empty-state" class="p-5 text-center d-none">
+                    <i class="bi bi-check-circle-fill fs-1 text-success d-block mb-3"></i>
+                    <h5 class="text-secondary fw-semibold mb-1">No reports currently require verification attention matching filters.</h5>
+                    <p class="text-muted small mb-0">All reports are either verified or no records match active parameters.</p>
+                </div>
+
+            </div>
+
+            <!-- Card Footer with Pagination -->
+            <div class="card-footer bg-white py-3 d-flex align-items-center justify-content-between border-top">
+                <small class="text-muted">Displaying 20 reports per page</small>
+                <div id="admin-pagination-container">
+                    <!-- Dynamic Pagination Controls -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Admin Review & Verification Modal -->
+    <div class="modal fade" id="adminReviewModal" tabindex="-1" aria-labelledby="adminReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white py-3">
+                    <h5 class="modal-title fw-bold" id="adminReviewModalLabel">
+                        <i class="bi bi-shield-check text-warning me-2"></i> Report Verification Review <span id="modal-report-id" class="badge bg-warning text-dark ms-2"></span>
+                        <span id="modal-attention-badge" class="ms-2"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+
+                    <!-- Basic Metadata Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Source Category</span>
+                            <span id="modal-source" class="fw-semibold text-dark fs-6"></span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Classified Event</span>
+                            <span id="modal-event-type" class="badge bg-info-subtle text-info-emphasis fs-7"></span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Location</span>
+                            <span id="modal-location" class="fw-semibold text-dark"></span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Reported Datetime</span>
+                            <span id="modal-datetime" class="text-dark"></span>
+                        </div>
+                    </div>
+
+                    <!-- Full Report Text -->
+                    <div class="card border-0 bg-light mb-4">
+                        <div class="card-body p-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block mb-1">Full Report Text / Observation Description</span>
+                            <p id="modal-report-text" class="mb-0 text-dark font-monospace fs-7 text-break"></p>
+                        </div>
+                    </div>
+
+                    <!-- Row with Weather Evidence Comparison & Duplicate Review -->
+                    <div class="row g-4 mb-4">
+                        <!-- Latest Weather Evidence Box (OpenWeather API) -->
+                        <div class="col-12 col-md-6">
+                            <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
+                                <div class="card-header bg-white py-2 border-bottom">
+                                    <h6 class="card-title mb-0 fw-bold text-info d-flex align-items-center">
+                                        <i class="bi bi-cloud-sun-fill me-2"></i> Latest Weather Evidence (Official API)
+                                    </h6>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div id="modal-obs-container">
+                                        <!-- Loaded dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Duplicate Review Box -->
+                        <div class="col-12 col-md-6">
+                            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                                <div class="card-header bg-white py-2 border-bottom">
+                                    <h6 class="card-title mb-0 fw-bold text-danger d-flex align-items-center">
+                                        <i class="bi bi-files me-2"></i> Duplicate & Related Report Inspection
+                                    </h6>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div id="modal-duplicate-container">
+                                        <!-- Loaded dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Verification Form Card -->
+                    <div class="card border-primary border-2 shadow-sm mb-4">
+                        <div class="card-header bg-primary text-white py-2 fw-bold">
+                            <i class="bi bi-pencil-square me-1"></i> Administrator Verification Decision Form
+                        </div>
+                        <div class="card-body p-3 bg-white">
+                            <form id="admin-verify-form">
+                                <input type="hidden" id="modal-target-report-id">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark fs-7">Select Verification Outcome:</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <input type="radio" class="btn-check" name="verify_result_choice" id="btn-v-verified" value="Verified" autocomplete="off">
+                                        <label class="btn btn-outline-success btn-sm fw-bold px-3" for="btn-v-verified">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Verified
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="verify_result_choice" id="btn-v-likely" value="Likely Consistent" autocomplete="off">
+                                        <label class="btn btn-outline-success btn-sm fw-bold px-3" for="btn-v-likely">
+                                            <i class="bi bi-hand-thumbs-up-fill me-1"></i> Likely Consistent
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="verify_result_choice" id="btn-v-needs" value="Needs Verification" autocomplete="off">
+                                        <label class="btn btn-outline-warning btn-sm fw-bold px-3" for="btn-v-needs">
+                                            <i class="bi bi-question-circle-fill me-1"></i> Needs Verification
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="verify_result_choice" id="btn-v-suspicious" value="Suspicious" autocomplete="off">
+                                        <label class="btn btn-outline-danger btn-sm fw-bold px-3" for="btn-v-suspicious">
+                                            <i class="bi bi-shield-x me-1"></i> Suspicious
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="verify_result_choice" id="btn-v-unverified" value="Unverified" autocomplete="off">
+                                        <label class="btn btn-outline-secondary btn-sm fw-bold px-3" for="btn-v-unverified">
+                                            <i class="bi bi-slash-circle me-1"></i> Unverified
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="modal-verify-reason" class="form-label fw-bold text-dark fs-7">Verification Reason / Explanation Note:</label>
+                                    <textarea id="modal-verify-reason" class="form-control form-control-sm" rows="3" placeholder="Enter explanation for verification decision (e.g. Report is consistent with heavy rainfall observed in the city around reported time)..."></textarea>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary btn-sm fw-bold px-4">
+                                        <i class="bi bi-check2-square me-1"></i> Save Verification Decision
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trail Log for this report -->
+                    <div class="card border-0 bg-light">
+                        <div class="card-header bg-light py-2 border-bottom fw-bold text-muted fs-7">
+                            <i class="bi bi-journal-text me-1"></i> Recent Action Audit Log for Report
+                        </div>
+                        <div class="card-body p-2">
+                            <div id="modal-history-container" class="fs-7">
+                                <!-- Loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Login - National Weather Intelligence Platform{% endblock %}
+
+{% block content %}
+    <div class="container py-5" style="max-width: 440px;">
+        <div class="text-center mb-4">
+            <a href="{{ url_for('dashboard') }}" class="text-decoration-none d-inline-flex align-items-center fw-bold text-dark fs-3">
+                <i class="bi bi-cloud-lightning-rain-fill text-warning me-2 fs-2"></i>
+                <span>National Weather</span>
+            </a>
+            <p class="text-muted small mt-1">Platform Authentication & Role-Based Access Control</p>
+        </div>
+
+        <!-- Login Form Card -->
+        <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+            <div class="card-header bg-dark text-white text-center py-3 border-0">
+                <h5 class="card-title mb-0 fw-bold d-flex align-items-center justify-content-center">
+                    <i class="bi bi-shield-lock-fill text-warning me-2"></i> User / Admin Login
+                </h5>
+            </div>
+            <div class="card-body p-4 bg-white">
+                <form action="{{ url_for('login') }}" method="POST">
+                    {% if request.args.get('next') %}
+                    <input type="hidden" name="next" value="{{ request.args.get('next') }}">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-bold text-secondary fs-7">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person-fill text-muted"></i></span>
+                            <input type="text" id="username" name="username" class="form-control" placeholder="e.g. admin or analyst" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-bold text-secondary fs-7">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-key-fill text-muted"></i></span>
+                            <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Log In
+                    </button>
+                </form>
+            </div>
+
+            <!-- Demo Account Credentials Helper Card -->
+            <div class="card-footer bg-light p-3 border-top text-xs">
+                <span class="fw-bold text-dark d-block mb-1"><i class="bi bi-info-circle-fill text-info me-1"></i> Demo Credentials:</span>
+                <div class="d-flex justify-content-between text-muted mb-1">
+                    <span><strong>Administrator:</strong> <code>admin</code> / <code>admin123</code></span>
+                    <span class="badge bg-danger-subtle text-danger">Role: admin</span>
+                </div>
+                <div class="d-flex justify-content-between text-muted mb-1">
+                    <span><strong>Weather Analyst:</strong> <code>analyst</code> / <code>analyst123</code></span>
+                    <span class="badge bg-warning-subtle text-warning-emphasis">Role: analyst</span>
+                </div>
+                <div class="d-flex justify-content-between text-muted">
+                    <span><strong>Standard User:</strong> <code>demo_user</code> / <code>user123</code></span>
+                    <span class="badge bg-secondary-subtle text-dark">Role: user</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted small">
+                <i class="bi bi-arrow-left me-1"></i> Back to Public Weather Dashboard
+            </a>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Weather Reports & Intelligence Search - National Weather Intelligence Platform{% endblock %}
+
+{% block content %}
+    <div class="container-fluid px-4 py-4">
+
+
+        <!-- Error Alert Container -->
+        <div id="search-error-alert" class="alert alert-danger alert-dismissible fade show shadow-sm mb-4 d-none" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span id="search-error-text">An error occurred.</span>
+            <button type="button" class="btn-close" onclick="document.getElementById('search-error-alert').classList.add('d-none')"></button>
+        </div>
+
+        <!-- Title Banner -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4 gap-2">
+            <div>
+                <h1 class="h3 fw-bold text-dark mb-1">Weather Report Intelligence & Advanced Search</h1>
+                <p class="text-muted small mb-0">Multi-parameter search, verification audit, source trust scoring, and geospatial indexing across Indian weather reports.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('submit_report') }}" class="btn btn-primary btn-sm fw-semibold">
+                    <i class="bi bi-mega-phone-fill me-1"></i> Submit Weather Report
+                </a>
+            </div>
+        </div>
+
+        <!-- Advanced Search & Filter Panel Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                    <i class="bi bi-funnel-fill text-primary me-2"></i> Report Intelligence Filters & Parameters
+                </h6>
+                <span class="badge bg-primary-subtle text-primary border">PostgreSQL Indexed</span>
+            </div>
+            <div class="card-body p-3 bg-light rounded-bottom">
+                <form id="report-search-form" class="row g-3">
+                    <!-- Keyword Search -->
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <label for="search-keyword" class="form-label fs-7 fw-bold text-secondary mb-1">Search Keyword</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="search-keyword" class="form-control" placeholder="Search text, city, state, source...">
+                        </div>
+                    </div>
+
+                    <!-- Event Type -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-event-type" class="form-label fs-7 fw-bold text-secondary mb-1">Event Type</label>
+                        <select id="search-event-type" class="form-select form-select-sm">
+                            <option value="All">All Events</option>
+                            <option value="Normal Weather">Normal Weather</option>
+                            <option value="Heavy Rainfall">Heavy Rainfall</option>
+                            <option value="Thunderstorm">Thunderstorm</option>
+                            <option value="Heatwave">Heatwave</option>
+                            <option value="Fog">Fog</option>
+                            <option value="Strong Wind">Strong Wind</option>
+                            <option value="Dust Storm">Dust Storm</option>
+                            <option value="Flood Risk">Flood Risk</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- State Filter -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-state" class="form-label fs-7 fw-bold text-secondary mb-1">State / UT</label>
+                        <select id="search-state" class="form-select form-select-sm">
+                            <option value="All">All States</option>
+                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Bihar">Bihar</option>
+                            <option value="Chhattisgarh">Chhattisgarh</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Goa">Goa</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Haryana">Haryana</option>
+                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                            <option value="Jharkhand">Jharkhand</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Odisha">Odisha</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="West Bengal">West Bengal</option>
+                        </select>
+                    </div>
+
+                    <!-- City Filter -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-city" class="form-label fs-7 fw-bold text-secondary mb-1">City Name</label>
+                        <input type="text" id="search-city" class="form-control form-control-sm" placeholder="e.g. Mumbai, Chennai">
+                    </div>
+
+                    <!-- Source Filter -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <label for="search-source" class="form-label fs-7 fw-bold text-secondary mb-1">Source Category</label>
+                        <select id="search-source" class="form-select form-select-sm">
+                            <option value="All">All Sources</option>
+                            <option value="Official Weather API">Official Weather API</option>
+                            <option value="Government/Official Source">Government/Official Source</option>
+                            <option value="Verified Organization">Verified Organization</option>
+                            <option value="News Website">News Website</option>
+                            <option value="Citizen Report">Citizen Report</option>
+                            <option value="Social Media">Social Media</option>
+                            <option value="Public Dataset">Public Dataset</option>
+                            <option value="Unknown Source">Unknown Source</option>
+                        </select>
+                    </div>
+
+                    <!-- Verification Filter -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-verification" class="form-label fs-7 fw-bold text-secondary mb-1">Verification Result</label>
+                        <select id="search-verification" class="form-select form-select-sm">
+                            <option value="All">All Verifications</option>
+                            <option value="Likely Consistent">Likely Consistent</option>
+                            <option value="Needs Verification">Needs Verification</option>
+                            <option value="Suspicious">Suspicious</option>
+                            <option value="Unverified">Unverified</option>
+                        </select>
+                    </div>
+
+                    <!-- Trust Level Filter -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-trust" class="form-label fs-7 fw-bold text-secondary mb-1">Trust Score Tier</label>
+                        <select id="search-trust" class="form-select form-select-sm">
+                            <option value="All">All Trust Levels</option>
+                            <option value="High Trust">High Trust (80–100)</option>
+                            <option value="Medium Trust">Medium Trust (50–79)</option>
+                            <option value="Low Trust">Low Trust (0–49)</option>
+                        </select>
+                    </div>
+
+                    <!-- Duplicate Status Filter -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-duplicate" class="form-label fs-7 fw-bold text-secondary mb-1">Duplicate Status</label>
+                        <select id="search-duplicate" class="form-select form-select-sm">
+                            <option value="All">All Types</option>
+                            <option value="Unique">Unique</option>
+                            <option value="Related Report">Related Report</option>
+                            <option value="Potential Duplicate">Potential Duplicate</option>
+                        </select>
+                    </div>
+
+                    <!-- Date From -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-date-from" class="form-label fs-7 fw-bold text-secondary mb-1">Date From</label>
+                        <input type="date" id="search-date-from" class="form-select form-select-sm">
+                    </div>
+
+                    <!-- Date To -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-date-to" class="form-label fs-7 fw-bold text-secondary mb-1">Date To</label>
+                        <input type="date" id="search-date-to" class="form-select form-select-sm">
+                    </div>
+
+                    <!-- Sort By -->
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <label for="search-sort-by" class="form-label fs-7 fw-bold text-secondary mb-1">Sort Results By</label>
+                        <select id="search-sort-by" class="form-select form-select-sm">
+                            <option value="date_desc">Date (Newest First)</option>
+                            <option value="date_asc">Date (Oldest First)</option>
+                            <option value="trust_desc">Trust Score (Highest)</option>
+                            <option value="trust_asc">Trust Score (Lowest)</option>
+                            <option value="confidence_desc">AI Confidence (Highest)</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12 col-lg-4 d-flex align-items-end gap-2 ms-auto">
+                        <button type="button" id="apply-search-filters" class="btn btn-primary btn-sm fw-semibold w-100">
+                            <i class="bi bi-filter me-1"></i> Apply Filters
+                        </button>
+                        <button type="button" id="clear-search-filters" class="btn btn-outline-secondary btn-sm fw-semibold text-nowrap">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Reports Database Table Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between border-bottom">
+                <h5 class="card-title mb-0 fw-bold d-flex align-items-center">
+                    <i class="bi bi-table text-primary me-2"></i> Weather Reports Database
+                </h5>
+                <span class="badge bg-secondary-subtle text-dark border fs-7">
+                    Showing <span id="showing-count" class="fw-bold">0</span> of <span id="total-count" class="fw-bold">0</span> reports
+                </span>
+            </div>
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Source</th>
+                                <th>Event</th>
+                                <th>Location</th>
+                                <th>Date / Time</th>
+                                <th>Verification</th>
+                                <th>Source Trust</th>
+                                <th>Duplicate Status</th>
+                                <th>AI Conf.</th>
+                                <th class="text-end pe-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body">
+                            <!-- Populated dynamically by reports_search.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State Message Container -->
+                <div id="reports-empty-state" class="p-5 text-center d-none">
+                    <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                    <h5 class="text-secondary fw-semibold mb-1">No weather reports match the selected filters.</h5>
+                    <p class="text-muted small mb-0">Try clearing or adjusting your search filters above.</p>
+                </div>
+
+            </div>
+
+            <!-- Card Footer with Pagination -->
+            <div class="card-footer bg-white py-3 d-flex align-items-center justify-content-between border-top">
+                <small class="text-muted">Displaying 20 reports per page</small>
+                <div id="pagination-container">
+                    <!-- Dynamic Pagination Controls -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Report Details Inspection Modal -->
+    <div class="modal fade" id="reportDetailsModal" tabindex="-1" aria-labelledby="reportDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white py-3">
+                    <h5 class="modal-title fw-bold" id="reportDetailsModalLabel">
+                        <i class="bi bi-file-earmark-text-fill text-warning me-2"></i> Report Details Inspection <span id="modal-report-id" class="badge bg-warning text-dark ms-2"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+
+                    <!-- Basic Metadata Grid -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Source</span>
+                            <span id="modal-source" class="fw-semibold text-dark fs-6"></span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Event Type</span>
+                            <span id="modal-event-type" class="badge bg-info-subtle text-info-emphasis fs-7"></span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Location</span>
+                            <span id="modal-location" class="fw-semibold text-dark"></span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Coordinates</span>
+                            <small id="modal-coordinates" class="text-muted font-monospace"></small>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Reported Datetime</span>
+                            <span id="modal-datetime" class="text-dark"></span>
+                        </div>
+                        <div class="col-12 col-md-6 d-none">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block">Source URL</span>
+                            <a id="modal-source-url" href="#" target="_blank" class="small text-truncate d-block"></a>
+                        </div>
+                    </div>
+
+                    <!-- Full Report Text Card -->
+                    <div class="card border-0 bg-light mb-4">
+                        <div class="card-body p-3">
+                            <span class="text-uppercase text-muted fs-7 fw-bold d-block mb-1">Full Citizen Ground Text / Report Content</span>
+                            <p id="modal-report-text" class="mb-0 text-dark font-monospace fs-7 text-break"></p>
+                        </div>
+                    </div>
+
+                    <!-- Verification & Trust Analysis Grid -->
+                    <div class="row g-3 mb-4">
+                        <!-- Verification -->
+                        <div class="col-12 col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body p-3">
+                                    <h6 class="fw-bold text-primary mb-2"><i class="bi bi-shield-check me-1"></i> AI Verification Analysis</h6>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted small">Result:</span>
+                                        <span id="modal-verification-result" class="fw-bold"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted small">Consistency Score:</span>
+                                        <span id="modal-verification-score" class="fw-bold"></span>
+                                    </div>
+                                    <small class="text-muted d-block border-top pt-2 mt-2">
+                                        <strong>Reasoning:</strong> <span id="modal-verification-reason"></span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Source Trust -->
+                        <div class="col-12 col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body p-3">
+                                    <h6 class="fw-bold text-warning-emphasis mb-2"><i class="bi bi-award-fill me-1"></i> Source Trust Scoring</h6>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted small">Trust Score:</span>
+                                        <span id="modal-trust-score" class="fw-bold text-dark"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted small">AI Confidence:</span>
+                                        <span id="modal-ai-confidence" class="fw-bold text-info"></span>
+                                    </div>
+                                    <small class="text-muted d-block border-top pt-2 mt-2">
+                                        <strong>Trust Explanation:</strong> <span id="modal-trust-reason"></span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Duplicate Analysis Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-3">
+                            <h6 class="fw-bold text-danger mb-2"><i class="bi bi-files me-1"></i> Multi-Signal Duplicate & Similarity Analysis</h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <span class="text-muted small">Duplicate Status:</span>
+                                    <span id="modal-duplicate-status" class="fw-bold d-block"></span>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-muted small">Similarity Score:</span>
+                                    <span id="modal-duplicate-similarity" class="fw-bold d-block"></span>
+                                </div>
+                                <div class="col-12 mt-2 border-top pt-2">
+                                    <small class="text-muted"><strong>Duplicate Reasoning:</strong> <span id="modal-duplicate-reason"></span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image / Attachment Preview -->
+                    <div>
+                        <span class="text-uppercase text-muted fs-7 fw-bold d-block mb-2">Media Attachment</span>
+                        <div id="modal-image-container"></div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/reports_search.js') }}"></script>
+{% endblock %}

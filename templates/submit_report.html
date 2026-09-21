@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Weather Report - National Weather Intelligence Platform{% endblock %}
+
+{% block content %}
+    <div class="container py-4" style="max-width: 900px;">
+
+
+        <!-- Form Card -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h4 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                    <i class="bi bi-mega-phone-fill text-warning me-2"></i> Submit Citizen Weather Report
+                </h4>
+                <p class="text-muted small mb-0 mt-1">Report ground-level weather observations to assist real-time intelligence monitoring across India.</p>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('submit_report') }}" method="POST" class="needs-validation" novalidate>
+                    
+                    <!-- Report Description -->
+                    <div class="mb-3">
+                        <label for="report_text" class="form-label fw-semibold">Report Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="report_text" name="report_text" rows="4" placeholder="Describe the weather condition observed (e.g. Heavy waterlogging near Sector 4 following intense rainfall...)" required>{{ form_data.report_text if form_data else '' }}</textarea>
+                        <div class="invalid-feedback">Please provide a detailed weather report description.</div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Event Type -->
+                        <div class="col-12 col-md-6">
+                            <label for="event_type" class="form-label fw-semibold">Event Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="event_type" name="event_type" required>
+                                <option value="" disabled {% if not form_data or not form_data.event_type %}selected{% endif %}>Select Event Type...</option>
+                                <option value="Rainfall" {% if form_data and form_data.event_type == 'Rainfall' %}selected{% endif %}>Rainfall</option>
+                                <option value="Thunderstorm" {% if form_data and form_data.event_type == 'Thunderstorm' %}selected{% endif %}>Thunderstorm</option>
+                                <option value="Flood" {% if form_data and form_data.event_type == 'Flood' %}selected{% endif %}>Flood</option>
+                                <option value="Heatwave" {% if form_data and form_data.event_type == 'Heatwave' %}selected{% endif %}>Heatwave</option>
+                                <option value="Fog" {% if form_data and form_data.event_type == 'Fog' %}selected{% endif %}>Fog</option>
+                                <option value="Dust Storm" {% if form_data and form_data.event_type == 'Dust Storm' %}selected{% endif %}>Dust Storm</option>
+                                <option value="Strong Wind" {% if form_data and form_data.event_type == 'Strong Wind' %}selected{% endif %}>Strong Wind</option>
+                                <option value="Other" {% if form_data and form_data.event_type == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a weather event type.</div>
+                        </div>
+
+                        <!-- Date and Time -->
+                        <div class="col-12 col-md-6">
+                            <label for="report_datetime" class="form-label fw-semibold">Report Date & Time</label>
+                            <input type="datetime-local" class="form-control" id="report_datetime" name="report_datetime" value="{{ form_data.report_datetime if form_data and form_data.report_datetime else default_datetime }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- City -->
+                        <div class="col-12 col-md-6">
+                            <label for="city" class="form-label fw-semibold">City / District <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="city" name="city" placeholder="e.g. Mumbai, Shimla, Patna" value="{{ form_data.city if form_data else '' }}" required>
+                            <div class="invalid-feedback">Please enter the city or district.</div>
+                        </div>
+
+                        <!-- State -->
+                        <div class="col-12 col-md-6">
+                            <label for="state" class="form-label fw-semibold">State / Union Territory <span class="text-danger">*</span></label>
+                            <select class="form-select" id="state" name="state" required>
+                                <option value="" disabled {% if not form_data or not form_data.state %}selected{% endif %}>Select State or UT...</option>
+                                <optgroup label="States">
+                                    <option value="Andhra Pradesh" {% if form_data and form_data.state == 'Andhra Pradesh' %}selected{% endif %}>Andhra Pradesh</option>
+                                    <option value="Arunachal Pradesh" {% if form_data and form_data.state == 'Arunachal Pradesh' %}selected{% endif %}>Arunachal Pradesh</option>
+                                    <option value="Assam" {% if form_data and form_data.state == 'Assam' %}selected{% endif %}>Assam</option>
+                                    <option value="Bihar" {% if form_data and form_data.state == 'Bihar' %}selected{% endif %}>Bihar</option>
+                                    <option value="Chhattisgarh" {% if form_data and form_data.state == 'Chhattisgarh' %}selected{% endif %}>Chhattisgarh</option>
+                                    <option value="Goa" {% if form_data and form_data.state == 'Goa' %}selected{% endif %}>Goa</option>
+                                    <option value="Gujarat" {% if form_data and form_data.state == 'Gujarat' %}selected{% endif %}>Gujarat</option>
+                                    <option value="Haryana" {% if form_data and form_data.state == 'Haryana' %}selected{% endif %}>Haryana</option>
+                                    <option value="Himachal Pradesh" {% if form_data and form_data.state == 'Himachal Pradesh' %}selected{% endif %}>Himachal Pradesh</option>
+                                    <option value="Jharkhand" {% if form_data and form_data.state == 'Jharkhand' %}selected{% endif %}>Jharkhand</option>
+                                    <option value="Karnataka" {% if form_data and form_data.state == 'Karnataka' %}selected{% endif %}>Karnataka</option>
+                                    <option value="Kerala" {% if form_data and form_data.state == 'Kerala' %}selected{% endif %}>Kerala</option>
+                                    <option value="Madhya Pradesh" {% if form_data and form_data.state == 'Madhya Pradesh' %}selected{% endif %}>Madhya Pradesh</option>
+                                    <option value="Maharashtra" {% if form_data and form_data.state == 'Maharashtra' %}selected{% endif %}>Maharashtra</option>
+                                    <option value="Manipur" {% if form_data and form_data.state == 'Manipur' %}selected{% endif %}>Manipur</option>
+                                    <option value="Meghalaya" {% if form_data and form_data.state == 'Meghalaya' %}selected{% endif %}>Meghalaya</option>
+                                    <option value="Mizoram" {% if form_data and form_data.state == 'Mizoram' %}selected{% endif %}>Mizoram</option>
+                                    <option value="Nagaland" {% if form_data and form_data.state == 'Nagaland' %}selected{% endif %}>Nagaland</option>
+                                    <option value="Odisha" {% if form_data and form_data.state == 'Odisha' %}selected{% endif %}>Odisha</option>
+                                    <option value="Punjab" {% if form_data and form_data.state == 'Punjab' %}selected{% endif %}>Punjab</option>
+                                    <option value="Rajasthan" {% if form_data and form_data.state == 'Rajasthan' %}selected{% endif %}>Rajasthan</option>
+                                    <option value="Sikkim" {% if form_data and form_data.state == 'Sikkim' %}selected{% endif %}>Sikkim</option>
+                                    <option value="Tamil Nadu" {% if form_data and form_data.state == 'Tamil Nadu' %}selected{% endif %}>Tamil Nadu</option>
+                                    <option value="Telangana" {% if form_data and form_data.state == 'Telangana' %}selected{% endif %}>Telangana</option>
+                                    <option value="Tripura" {% if form_data and form_data.state == 'Tripura' %}selected{% endif %}>Tripura</option>
+                                    <option value="Uttar Pradesh" {% if form_data and form_data.state == 'Uttar Pradesh' %}selected{% endif %}>Uttar Pradesh</option>
+                                    <option value="Uttarakhand" {% if form_data and form_data.state == 'Uttarakhand' %}selected{% endif %}>Uttarakhand</option>
+                                    <option value="West Bengal" {% if form_data and form_data.state == 'West Bengal' %}selected{% endif %}>West Bengal</option>
+                                </optgroup>
+                                <optgroup label="Union Territories">
+                                    <option value="Andaman and Nicobar Islands" {% if form_data and form_data.state == 'Andaman and Nicobar Islands' %}selected{% endif %}>Andaman and Nicobar Islands</option>
+                                    <option value="Chandigarh" {% if form_data and form_data.state == 'Chandigarh' %}selected{% endif %}>Chandigarh</option>
+                                    <option value="Dadra and Nagar Haveli and Daman and Diu" {% if form_data and form_data.state == 'Dadra and Nagar Haveli and Daman and Diu' %}selected{% endif %}>Dadra and Nagar Haveli and Daman and Diu</option>
+                                    <option value="Delhi" {% if form_data and form_data.state == 'Delhi' %}selected{% endif %}>Delhi</option>
+                                    <option value="Jammu and Kashmir" {% if form_data and form_data.state == 'Jammu and Kashmir' %}selected{% endif %}>Jammu and Kashmir</option>
+                                    <option value="Ladakh" {% if form_data and form_data.state == 'Ladakh' %}selected{% endif %}>Ladakh</option>
+                                    <option value="Lakshadweep" {% if form_data and form_data.state == 'Lakshadweep' %}selected{% endif %}>Lakshadweep</option>
+                                    <option value="Puducherry" {% if form_data and form_data.state == 'Puducherry' %}selected{% endif %}>Puducherry</option>
+                                </optgroup>
+                            </select>
+                            <div class="invalid-feedback">Please select a state or union territory.</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Latitude -->
+                        <div class="col-12 col-md-6">
+                            <label for="latitude" class="form-label fw-semibold">Latitude <span class="text-muted fw-normal">(Optional)</span></label>
+                            <input type="number" step="any" class="form-control" id="latitude" name="latitude" placeholder="e.g. 19.0760" value="{{ form_data.latitude if form_data else '' }}">
+                        </div>
+
+                        <!-- Longitude -->
+                        <div class="col-12 col-md-6">
+                            <label for="longitude" class="form-label fw-semibold">Longitude <span class="text-muted fw-normal">(Optional)</span></label>
+                            <input type="number" step="any" class="form-control" id="longitude" name="longitude" placeholder="e.g. 72.8777" value="{{ form_data.longitude if form_data else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <!-- Image URL -->
+                        <div class="col-12 col-md-6">
+                            <label for="image_url" class="form-label fw-semibold">Image URL <span class="text-muted fw-normal">(Optional)</span></label>
+                            <input type="url" class="form-control" id="image_url" name="image_url" placeholder="https://example.com/weather-photo.jpg" value="{{ form_data.image_url if form_data else '' }}">
+                        </div>
+
+                        <!-- Video URL -->
+                        <div class="col-12 col-md-6">
+                            <label for="video_url" class="form-label fw-semibold">Video URL <span class="text-muted fw-normal">(Optional)</span></label>
+                            <input type="url" class="form-control" id="video_url" name="video_url" placeholder="https://example.com/weather-video.mp4" value="{{ form_data.video_url if form_data else '' }}">
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i class="bi bi-send-fill me-1"></i> Submit Report
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+{% endblock %}
