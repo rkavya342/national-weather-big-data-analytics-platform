@@ -242,7 +242,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between border-bottom">
                 <h5 class="card-title mb-0 fw-bold d-flex align-items-center">
-                    <i class="bi bi-database me-2 text-primary"></i> Ingested API Weather History ({{ recent_records|length if recent_records else 0 }})
+                    <i class="bi bi-database me-2 text-primary"></i> Ingested API Weather History ({{ total_api_count if total_api_count is not none else (recent_records|length if recent_records else 0) }})
                 </h5>
                 <span class="badge bg-secondary-subtle text-dark">Latest Ingested Observations</span>
             </div>
@@ -254,10 +254,11 @@
                             <tr>
                                 <th>ID</th>
                                 <th>City</th>
-                                <th>Condition</th>
+                                <th>State</th>
+                                <th>Condition & Description</th>
                                 <th>Temp (°C)</th>
                                 <th>Humidity</th>
-                                <th>Wind (m/s)</th>
+                                <th>Wind Speed</th>
                                 <th>Coordinates</th>
                                 <th>Recorded At</th>
                             </tr>
@@ -267,11 +268,17 @@
                             <tr>
                                 <td><span class="fw-bold">#{{ rec.id }}</span></td>
                                 <td><span class="fw-semibold text-dark">{{ rec.city }}</span></td>
-                                <td><span class="badge bg-info-subtle text-info-emphasis">{{ rec.weather_condition or 'N/A' }}</span></td>
-                                <td><span class="fw-bold">{{ "%.1f"|format(rec.temperature) if rec.temperature is not none else '--' }}°C</span></td>
-                                <td>{{ rec.humidity }}%</td>
-                                <td>{{ rec.wind_speed }} m/s</td>
-                                <td><small class="text-muted">{{ rec.latitude }}, {{ rec.longitude }}</small></td>
+                                <td><span class="text-secondary small">{{ rec.state if rec.state else '-' }}</span></td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-info-emphasis me-1">{{ rec.weather_condition or 'N/A' }}</span>
+                                    {% if rec.weather_description %}
+                                    <small class="text-muted d-block text-truncate" style="max-width: 160px;" title="{{ rec.weather_description }}">{{ rec.weather_description }}</small>
+                                    {% endif %}
+                                </td>
+                                <td><span class="fw-bold text-dark">{{ "%.1f"|format(rec.temperature|float) if rec.temperature is not none else '--' }}°C</span></td>
+                                <td><span class="fw-medium">{{ rec.humidity if rec.humidity is not none else '--' }}%</span></td>
+                                <td><span class="fw-medium">{{ "%.2f"|format(rec.wind_speed|float) if rec.wind_speed is not none else '--' }} m/s</span></td>
+                                <td><small class="text-muted">{{ rec.latitude if rec.latitude is not none else '-' }}, {{ rec.longitude if rec.longitude is not none else '-' }}</small></td>
                                 <td><small class="text-muted">{{ rec.recorded_at or rec.created_at }}</small></td>
                             </tr>
                             {% endfor %}

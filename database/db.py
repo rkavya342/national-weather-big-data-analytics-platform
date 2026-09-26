@@ -1,6 +1,7 @@
 import os
 import math
 import psycopg2
+from ml.weather_classifier import WeatherEventClassifier
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv, find_dotenv
 from datetime import datetime
@@ -198,6 +199,11 @@ def get_db_connection():
     Establish and return a connection to the PostgreSQL database.
     """
     _reload_env()
+
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        return psycopg2.connect(database_url)
 
     host = os.getenv("DB_HOST") or os.getenv("POSTGRES_HOST") or os.getenv("PGHOST") or "localhost"
     port = os.getenv("DB_PORT") or os.getenv("POSTGRES_PORT") or os.getenv("PGPORT") or "5432"
@@ -1140,8 +1146,11 @@ def fetch_multi_source_summary():
 
         cursor.execute("SELECT COUNT(*) as total FROM weather_reports;")
         t_row = cursor.fetchone()
-        if t_row:
-            summary["total_reports"] = t_row["total"]
+        weather_report_count = t_row["total"] if t_row else 0
+
+        cursor.execute("SELECT COUNT(*) as total FROM api_weather_data;")
+        api_row = cursor.fetchone()
+        api_report_count = api_row["total"] if api_row else 0
 
         cursor.execute("""
             SELECT COALESCE(source, 'Citizen Report') as source_name, COUNT(*) as count
@@ -1149,31 +1158,44 @@ def fetch_multi_source_summary():
             GROUP BY COALESCE(source, 'Citizen Report');
         """)
         rows = cursor.fetchall()
-
         source_counts = {r["source_name"]: r["count"] for r in rows}
 
-        summary["official_api_reports"] = (
-            source_counts.get("Official Weather API", 0) +
-            source_counts.get("OpenWeatherMap API", 0) +
-            source_counts.get("Official API", 0)
-        )
-        summary["citizen_reports"] = source_counts.get("Citizen Report", 0)
-        summary["social_media_reports"] = (
-            source_counts.get("Social Media", 0) +
-            source_counts.get("Social Media Public Post", 0) +
-            source_counts.get("Mastodon (Public Feed)", 0)
-        )
-        summary["news_reports"] = (
-            source_counts.get("News Website", 0) +
-            source_counts.get("News Report", 0)
-        )
-        summary["public_dataset_reports"] = source_counts.get("Public Dataset", 0)
-        summary["govt_reports"] = (
-            source_counts.get("Government/Official Source", 0) +
-            source_counts.get("Government Channel", 0) +
-            source_counts.get("IMD Official Bulletin", 0)
-        )
-        summary["verified_org_reports"] = source_counts.get("Verified Organization", 0)
+        official_api_from_wr = 0
+        govt_cnt = 0
+        verified_org_cnt = 0
+        news_cnt = 0
+        citizen_cnt = 0
+        social_cnt = 0
+        public_data_cnt = 0
+        unknown_cnt = 0
+
+        for source_name, count in source_counts.items():
+            s_lower = str(source_name).lower().strip()
+            if any(k in s_lower for k in ["official weather api", "openweather", "api station sync"]):
+                official_api_from_wr += count
+            elif any(k in s_lower for k in ["government", "govt", "imd"]):
+                govt_cnt += count
+            elif any(k in s_lower for k in ["verified organization", "verified org", "skymet", "ndrf"]):
+                verified_org_cnt += count
+            elif any(k in s_lower for k in ["news website", "news report", "news"]):
+                news_cnt += count
+            elif any(k in s_lower for k in ["social media", "twitter", "mastodon", "x.com"]):
+                social_cnt += count
+            elif any(k in s_lower for k in ["public dataset", "open government data", "data archive"]):
+                public_data_cnt += count
+            elif "citizen" in s_lower or s_lower in ["user", "ground report"]:
+                citizen_cnt += count
+            else:
+                unknown_cnt += count
+
+        summary["total_reports"] = weather_report_count + api_report_count
+        summary["official_api_reports"] = api_report_count + official_api_from_wr
+        summary["govt_reports"] = govt_cnt
+        summary["verified_org_reports"] = verified_org_cnt
+        summary["news_reports"] = news_cnt
+        summary["citizen_reports"] = citizen_cnt
+        summary["social_media_reports"] = social_cnt
+        summary["public_dataset_reports"] = public_data_cnt
 
         summary["chart_counts"] = [
             summary["official_api_reports"],
@@ -1183,11 +1205,31 @@ def fetch_multi_source_summary():
             summary["citizen_reports"],
             summary["social_media_reports"],
             summary["public_dataset_reports"],
-            source_counts.get("Unknown Source", 0)
+            unknown_cnt
         ]
 
         cursor.execute("SELECT * FROM weather_reports ORDER BY created_at DESC LIMIT 10;")
-        summary["recent_reports"] = cursor.fetchall()
+        recent = cursor.fetchall()
+
+        if not recent and api_report_count > 0:
+            cursor.execute("SELECT * FROM api_weather_data ORDER BY created_at DESC LIMIT 10;")
+            api_recent = cursor.fetchall()
+            recent = []
+            for item in api_recent:
+                recent.append({
+                    "id": item.get("id"),
+                    "source": "Official Weather API",
+                    "city": item.get("city"),
+                    "state": "-",
+                    "event_type": item.get("event_type") or item.get("weather_condition") or "Weather Observation",
+                    "verification_result": "Likely Consistent",
+                    "verification_status": "Likely Consistent",
+                    "trust_score": 95.0,
+                    "report_datetime": item.get("recorded_at") or item.get("created_at"),
+                    "created_at": item.get("created_at")
+                })
+
+        summary["recent_reports"] = recent
 
         cursor.close()
         conn.close()
@@ -1464,6 +1506,30 @@ def fetch_recent_api_weather_data(limit=10):
             error_msg = error_msg.replace(password, "******")
 
         return False, error_msg
+
+
+def fetch_total_api_weather_count():
+    """
+    Fetch the total count of records in api_weather_data table.
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM api_weather_data;")
+        row = cursor.fetchone()
+        total = row[0] if row else 0
+        cursor.close()
+        conn.close()
+        return True, total
+    except Exception as e:
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+        return False, 0
+
 
 
 def fetch_ai_event_summary():

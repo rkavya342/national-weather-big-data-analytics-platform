@@ -170,7 +170,7 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% set tsc = r.trust_score or 0.0 %}
+                                            {% set tsc = (r.trust_score|float) if r.trust_score else 0.0 %}
                                             {% if tsc >= 80.0 %}
                                             <span class="fw-bold text-success">{{ "%.1f"|format(tsc) }}%</span>
                                             {% elif tsc >= 50.0 %}
@@ -1104,6 +1104,8 @@
             if (ctx) {
                 const chartLabels = {{ (multi_source_summary.chart_labels if multi_source_summary else[]) | tojson }};
                 const chartData = {{ (multi_source_summary.chart_counts if multi_source_summary else[]) | tojson }};
+
+                const totalCount = chartData.reduce((a, b) => a + b, 0);
 
                 new Chart(ctx, {
                     type: 'doughnut',

@@ -12,6 +12,7 @@ from database.db import (
     insert_citizen_report,
     save_api_weather_data,
     fetch_recent_api_weather_data,
+    fetch_total_api_weather_count,
     fetch_ai_event_summary,
     fetch_classified_events,
     classify_existing_unclassified_data,
@@ -640,7 +641,8 @@ def api_weather():
     ingestion_status = get_latest_ingestion_status()
     mastodon_status = get_mastodon_ingestion_status()
 
-    # Retrieve recent ingested API records from database
+    # Retrieve total API weather records count & recent records from database
+    _, total_api_count = fetch_total_api_weather_count()
     _, recent_records = fetch_recent_api_weather_data(limit=25)
     if not isinstance(recent_records, list):
         recent_records = []
@@ -651,6 +653,7 @@ def api_weather():
             weather_data=None,
             error_msg=None,
             recent_records=recent_records,
+            total_api_count=total_api_count,
             queried_city="",
             saved_status=False,
             ingestion_status=ingestion_status,
@@ -664,7 +667,8 @@ def api_weather():
         # Save to database (triggers automated event classification)
         saved, _ = save_api_weather_data(result)
 
-        # Refresh recent records table
+        # Refresh recent records table & total count
+        _, total_api_count = fetch_total_api_weather_count()
         _, updated_records = fetch_recent_api_weather_data(limit=25)
         if isinstance(updated_records, list):
             recent_records = updated_records
@@ -674,6 +678,7 @@ def api_weather():
             weather_data=result,
             error_msg=None,
             recent_records=recent_records,
+            total_api_count=total_api_count,
             queried_city=city,
             saved_status=saved,
             ingestion_status=ingestion_status,
@@ -685,6 +690,7 @@ def api_weather():
             weather_data=None,
             error_msg=result,
             recent_records=recent_records,
+            total_api_count=total_api_count,
             queried_city=city,
             saved_status=False,
             ingestion_status=ingestion_status,
@@ -1228,4 +1234,4 @@ def internal_server_error(e):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host="0.0.0.0", port=5000, allow_unsafe_werkzeug=True)
+    socketio.run(app, debug=False, host="0.0.0.0", port=5000, allow_unsafe_werkzeug=True)
