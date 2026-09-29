@@ -16,7 +16,7 @@
                     <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fw-semibold fs-7">
                         <i class="bi bi-circle-fill me-1 text-success fs-8"></i> Automatic Ingestion: ON
                     </span>
-                    <form action="{{ url_for('ingest_weather_route') }}" method="POST" class="d-inline">
+                    <form action="{{ url_for('ingest_weather_route') }}" method="POST" class="d-inline" onsubmit="const btn=this.querySelector('button'); btn.disabled=true; btn.innerHTML='<span class=\'spinner-border spinner-border-sm me-1\' role=\'status\' aria-hidden=\'true\'></span> Running...';">
                         <button type="submit" class="btn btn-success btn-sm fw-bold px-3">
                             <i class="bi bi-play-fill me-1"></i> Run Now
                         </button>

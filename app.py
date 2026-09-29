@@ -743,14 +743,16 @@ def ingest_weather_route():
         return jsonify(summary), 200
 
     # If triggered from HTML UI button
-    if summary["success_count"] > 0:
+    if summary.get("in_progress"):
+        flash("Weather data ingestion is already in progress in the background. Please refresh in a moment.", "info")
+    elif summary.get("success_count", 0) > 0:
         flash(
             f"Weather ingestion complete! Processed {summary['total_cities']} cities ({summary['success_count']} ingested & AI classified, {summary['failed_count']} failed).",
             "success"
         )
     else:
         flash(
-            f"Weather ingestion completed with warnings: {summary['failed_count']} cities failed. Check OpenWeather API key activation or network status.",
+            f"Weather ingestion completed with warnings: {summary.get('failed_count', 0)} cities failed. Check OpenWeather API key activation or network status.",
             "warning"
         )
 
